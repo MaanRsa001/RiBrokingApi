@@ -22,6 +22,7 @@ import com.maan.insurance.model.req.propPremium.GetPremiumDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumedListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
+import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
 import com.maan.insurance.model.req.propPremium.PremiumEditReq;
 import com.maan.insurance.model.req.propPremium.PremiumUpdateMethodReq;
@@ -910,8 +911,26 @@ public class PropPremiumValidation {
 	}
 
 	public List<ErrorCheck> viewPremiumDetailsRIVali(ViewPremiumDetailsRIReq req) {
-		// TODO Auto-generated method stub
-		return null;
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if(StringUtils.isBlank(req.getTransactionNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter TransactionNo"),"TransactionNo", "01"));
+			}
+		return list;
+	}
+
+	public List<ErrorCheck> getVatInfoVali(GetVatInfoReq req) {
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if(StringUtils.isBlank(req.getBranchCode())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			}
+	
+		if(StringUtils.isBlank(req.getPremiumAmount())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter PremiumAmount"),"PremiumAmount", "03"));
+			}
+		if(StringUtils.isBlank(req.getProposalNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "01"));
+			}
+		return list;
 	}
 
 	

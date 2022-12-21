@@ -38,6 +38,7 @@ import com.maan.insurance.model.req.propPremium.GetPremiumDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumedListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
+import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertLossReserved;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
 import com.maan.insurance.model.req.propPremium.PremiumEditReq;
@@ -87,6 +88,8 @@ import com.maan.insurance.model.res.propPremium.GetRetroContractsRes1;
 import com.maan.insurance.model.res.propPremium.GetSPRetroListRes;
 import com.maan.insurance.model.res.propPremium.GetSPRetroListRes1;
 import com.maan.insurance.model.res.propPremium.GetSumOfShareSignRes;
+import com.maan.insurance.model.res.propPremium.GetVatInfoRes;
+import com.maan.insurance.model.res.propPremium.GetVatInfoRes1;
 import com.maan.insurance.model.res.propPremium.InsertPremiumRes;
 import com.maan.insurance.model.res.propPremium.InsertPremiumRes1;
 import com.maan.insurance.model.res.propPremium.PremiumEditRes;
@@ -3410,6 +3413,31 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				response.setIsError(true);
 		    }
 		return response;
+	}
+	
+	@Override
+	public GetVatInfoRes getVatInfo(GetVatInfoReq req) {
+		GetVatInfoRes response = new GetVatInfoRes();
+		GetVatInfoRes1 res = new GetVatInfoRes1();
+		try {
+			List<Map<String,Object>> list = queryImpl.selectList("Select.premium.vatInfo",new String[] {req.getPremiumAmount(),req.getProposalNo(),req.getBranchCode()});			
+			if(list.size()>0){
+				Map<String,Object> tempMap = (Map<String,Object>) list.get(0);
+				res.setBrokerageAmt(tempMap.get("BROKERAGE_AMT")==null?"":tempMap.get("BROKERAGE_AMT").toString());
+				res.setBrokerageVat(tempMap.get("BROKERAGE_VAT")==null?"":tempMap.get("BROKERAGE_VAT").toString());		
+				res.setPremiumVat(tempMap.get("PREMIUM_VAT")==null?"":tempMap.get("PREMIUM_VAT").toString());
+				res.setProposalNo(tempMap.get("PROPOSAL_NO")==null?"":tempMap.get("PROPOSAL_NO").toString());
+				response.setCommonResponse(res);	
+			}			
+			response.setMessage("Success");
+			response.setIsError(false);
+		    }catch (Exception e) {
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		    return response;
 	}
 
 	}

@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +52,7 @@ import com.maan.insurance.controller.Dropdown.updateSubEditModeReq;
 import com.maan.insurance.model.entity.CountryMaster;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.PositionMaster;
+import com.maan.insurance.model.entity.StatusMaster;
 import com.maan.insurance.model.entity.TmasLedgerMaster;
 import com.maan.insurance.model.entity.TmasTerritoryCountryMapping;
 import com.maan.insurance.model.entity.TtrnBonus;
@@ -59,6 +61,7 @@ import com.maan.insurance.model.entity.TtrnRip;
 import com.maan.insurance.model.entity.TtrnRiskCommission;
 import com.maan.insurance.model.repository.CountryMasterRepository;
 import com.maan.insurance.model.repository.PositionMasterRepository;
+import com.maan.insurance.model.repository.StatusMasterRepository;
 import com.maan.insurance.model.repository.TmasLedgerMasterRepository;
 import com.maan.insurance.model.repository.TtrnBonusRepository;
 import com.maan.insurance.model.repository.TtrnInsurerDetailsRepository;
@@ -87,6 +90,8 @@ import com.maan.insurance.model.req.proportionality.ContractReq;
 import com.maan.insurance.model.req.proportionality.GetRetroContractDetailsListReq;
 import com.maan.insurance.model.res.DropDown.CommonResDropDown;
 import com.maan.insurance.model.res.DropDown.CommonResponse;
+import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes;
+import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes1;
 import com.maan.insurance.model.res.DropDown.GetBouquetListRes;
 import com.maan.insurance.model.res.DropDown.GetBouquetListRes1;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
@@ -129,6 +134,9 @@ public class DropDownServiceImple implements DropDownService{
 	private PositionMasterRepository pmRepo;
 	@Autowired
 	private TtrnBonusRepository bonusRepo;
+	@Autowired
+	private StatusMasterRepository smRepo;
+	
 	
 	@PersistenceContext
 	private EntityManager em;
@@ -3525,8 +3533,8 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 
       		// Select
       		query.multiselect(tc.get("customerId").alias("customerId"),
-      				cb.selectCase().when(cb.equal(tc.get("customerType"), "C"), tc.get("companyName").alias("name")).otherwise(cb.concat(tc.get("firstName"), tc.get("lastName")).alias("name")))
-      				.distinct(true) ;  //cb.concat(tc.get("firstName"), tc.get("lastName")).alias("name")
+      				cb.selectCase().when(cb.equal(tc.get("customerType"), "C"), tc.get("companyName")).otherwise(cb.concat(tc.get("firstName"), tc.get("lastName"))).alias("name"))
+      				.distinct(true) ;  
 
       		// MAXAmend ID
       		Subquery<Long> maxAmend = query.subquery(Long.class); 
@@ -3548,6 +3556,7 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
       		Predicate n3 = cb.equal(tc.get("status"), "Y");
       		Predicate n4 = cb.equal(tc.get("customerId"), cedingId);
       		Predicate n5 = cb.equal(tc.get("amendId"), maxAmend);
+      		//Order By name (alias name need to check and update)
       		if(!"63".equals(brokerId)){
 				//GET_PAYMENT_PARTNER_BR_LIST
       			Predicate n7 = cb.equal(tc.get("customerId"), brokerId);
@@ -3569,6 +3578,7 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
       				res.setCodeDescription(data.get("name")==null?"": data.get("name").toString());;
       				resList.add(res);
       			}
+      			resList.sort(Comparator.comparing(CommonResDropDown :: getCodeDescription));
       		}
 			}
 			response.setCommonResponse(resList);
@@ -3662,5 +3672,85 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 	}
 
 	return sysDate;
+	}
+
+	@Override
+	public GetBouquetExistingListRes getBouquetExistingList(String branchCode, String bouquetNo, String bouquetYN) {
+		GetBouquetExistingListRes response = new GetBouquetExistingListRes();
+		List<GetBouquetExistingListRes1> resList = new ArrayList<GetBouquetExistingListRes1>();
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		try{
+			if(StringUtils.isNotBlank(bouquetNo) && "Y".equals(bouquetYN)) {
+			list= queryImpl.selectList("GET_EXISTING_BOUQUET",new String[]{branchCode,bouquetNo});
+			if(list.size()>0) {
+				for(Map<String,Object> data: list) {
+					GetBouquetExistingListRes1 res = new GetBouquetExistingListRes1();
+					res.setInsDate(data.get("INS_DATE")==null?"":data.get("INS_DATE").toString()); 
+					res.setExpDate(data.get("EXP_DATE")==null?"":data.get("EXP_DATE").toString()); 
+					res.setCompanyName(data.get("COMPANY_NAME")==null?"":data.get("COMPANY_NAME").toString()); 
+					res.setUwYear(data.get("UW_YEAR")==null?"":data.get("UW_YEAR").toString()); 
+					res.setUwYearTo(data.get("UW_YEAR_TO")==null?"":data.get("UW_YEAR_TO").toString()); 
+					res.setTreatytype(data.get("TREATYTYPE")==null?"":data.get("TREATYTYPE").toString()); 
+					res.setProductId(data.get("PRODUCT_ID")==null?"":data.get("PRODUCT_ID").toString()); 
+					res.setBusinessType(data.get("BUSINESS_TYPE")==null?"":data.get("BUSINESS_TYPE").toString()); 
+					res.setProposalNo(data.get("PROPOSAL_NO")==null?"":data.get("PROPOSAL_NO").toString()); 
+					res.setTreatytype(data.get("TREATY_TYPE")==null?"":data.get("TREATY_TYPE").toString()); 
+					res.setRskTreatyid(data.get("RSK_TREATYID")==null?"":data.get("RSK_TREATYID").toString()); 
+					res.setPolicyStatus(data.get("POLICY_STATUS")==null?"":data.get("POLICY_STATUS").toString()); 
+					res.setExistingShare(data.get("EXISTING_SHARE")==null?"":data.get("EXISTING_SHARE").toString()); 
+					res.setBaseLayer(data.get("BASE_LAYER")==null?"":data.get("BASE_LAYER").toString()); 
+					res.setSectionNo(data.get("SECTION_NO")==null?"":data.get("SECTION_NO").toString()); 
+					res.setLayerNo(data.get("LAYER_NO")==null?"":data.get("LAYER_NO").toString());
+					res.setTmasDepartmentName(data.get("TMAS_DEPARTMENT_NAME")==null?"":data.get("TMAS_DEPARTMENT_NAME").toString()); 
+					res.setSubClass(data.get("SUB_CLASS")==null?"":data.get("SUB_CLASS").toString());
+					res.setOfferNo(data.get("OFFER_NO")==null?"":data.get("OFFER_NO").toString());
+					resList.add(res);
+					}
+			}
+			}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public GetCommonDropDownRes getStatusDropDown(String branchCode) {
+		GetCommonDropDownRes response = new GetCommonDropDownRes();
+		List<CommonResDropDown> resList = new ArrayList<CommonResDropDown>();
+		try{
+			//GET_STATUS_DROP_DOWN
+			List<StatusMaster> list = smRepo.findByBranchCodeAndStatus(branchCode,"Y");
+			
+			if(list.size()>0) {
+      			for(StatusMaster data: list) {
+      				CommonResDropDown res = new CommonResDropDown();
+      				res.setCode(data.getStatusCode()==null?"":data.getStatusCode().toString());
+      				res.setCodeDescription(data.getStatusName()==null?"": data.getStatusName().toString());;
+      				resList.add(res);
+      			}
+      		}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public GetCommonDropDownRes getSubStatusDropDown(String branchCode, String statusCode) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

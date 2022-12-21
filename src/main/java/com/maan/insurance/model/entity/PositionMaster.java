@@ -158,7 +158,19 @@ private static final long serialVersionUID = 1L;
     private String     dataMapContNo ;
     
     @Column(name="BOUQUET_NO")
-    private String     bouquetNo ; //RIBROKING
+    private BigDecimal     bouquetNo ; //RIBROKING
+    
+    @Column(name="BOUQUET_MODE_YN")
+    private String     bouquetModeYn ;
+    
+    @Column(name="UW_YEAR_TO")
+    private BigDecimal     uwYearTo ;
+    
+    @Column(name="SECTION_NO")
+    private BigDecimal     sectionNo ;
+    
+    @Column(name="OFFER_NO")
+    private String     offerNo ;
 
 
     //--- ENTITY LINKS ( RELATIONSHIP )
