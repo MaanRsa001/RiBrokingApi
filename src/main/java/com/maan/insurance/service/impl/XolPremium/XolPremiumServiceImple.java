@@ -387,18 +387,16 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 	 List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
 	 try {
 		 query="premium.select.treatyContDet1_xolLayerNo2";
-		 args =new String[11];
+		 args =new String[9];
 		 args[0] = req.getProductId();
 		 args[1] = req.getContNo();
 		 args[2] = req.getLayerno();
 		 args[3] = req.getBranchCode();
-		 args[4] = req.getBranchCode();
-		 args[5] = req.getProductId();
+		 args[4] = req.getProductId();
+		 args[5] = req.getBranchCode();
 		 args[6] = req.getBranchCode();
-		 args[7] = req.getBranchCode();
-		 args[8] = req.getContNo();
-		 args[9] = req.getLayerno();
-		 args[10] = req.getBranchCode();
+		 args[7] = req.getContNo();
+		 args[8] = req.getLayerno();
 		 list = queryImpl.selectList(query, args);
 			if(list!=null && list.size()>0) {
 				Map<String,Object> contDet=(Map<String,Object>) list.get(0);
