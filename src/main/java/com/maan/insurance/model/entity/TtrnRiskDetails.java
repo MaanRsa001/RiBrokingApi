@@ -48,7 +48,7 @@ import javax.persistence.*;
 @Table(name="TTRN_RISK_DETAILS")
 
 
-public class TtrnRiskDetails implements Serializable {
+public class TtrnRiskDetails implements Serializable { 
  
 private static final long serialVersionUID = 1L;
  

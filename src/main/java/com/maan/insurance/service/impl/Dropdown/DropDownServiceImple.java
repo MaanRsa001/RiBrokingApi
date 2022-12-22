@@ -47,12 +47,15 @@ import org.springframework.util.CollectionUtils;
 import com.maan.insurance.model.entity.TtrnInsurerDetails;
 import com.maan.insurance.model.entity.TtrnMndInstallments;
 import com.maan.insurance.model.entity.TtrnRetroCessionary;
+import com.maan.insurance.model.entity.TtrnRiPlacement;
 import com.maan.insurance.model.entity.TtrnRiskCommission;
+import com.maan.insurance.model.entity.TtrnRiskDetails;
 import com.maan.insurance.controller.Dropdown.updateSubEditModeReq;
 import com.maan.insurance.model.entity.CountryMaster;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.PositionMaster;
 import com.maan.insurance.model.entity.StatusMaster;
+import com.maan.insurance.model.entity.SubStatusMaster;
 import com.maan.insurance.model.entity.TmasLedgerMaster;
 import com.maan.insurance.model.entity.TmasTerritoryCountryMapping;
 import com.maan.insurance.model.entity.TtrnBonus;
@@ -62,6 +65,7 @@ import com.maan.insurance.model.entity.TtrnRiskCommission;
 import com.maan.insurance.model.repository.CountryMasterRepository;
 import com.maan.insurance.model.repository.PositionMasterRepository;
 import com.maan.insurance.model.repository.StatusMasterRepository;
+import com.maan.insurance.model.repository.SubStatusMasterRepository;
 import com.maan.insurance.model.repository.TmasLedgerMasterRepository;
 import com.maan.insurance.model.repository.TtrnBonusRepository;
 import com.maan.insurance.model.repository.TtrnInsurerDetailsRepository;
@@ -76,6 +80,7 @@ import com.maan.insurance.model.req.DropDown.GetCurrencyIdReq;
 import com.maan.insurance.model.req.DropDown.GetDepartmentDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetDepartmentieModuleDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetInwardBusinessTypeDropDownReq;
+import com.maan.insurance.model.req.DropDown.GetPlacedProposalListReq;
 import com.maan.insurance.model.req.DropDown.GetPreDepartmentDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetProductieModuleDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetProfitCentreieModuleDropDownReq;
@@ -98,6 +103,8 @@ import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.DropDown.GetCommonValueRes;
 import com.maan.insurance.model.res.DropDown.GetContractValRes;
 import com.maan.insurance.model.res.DropDown.GetContractValidationRes;
+import com.maan.insurance.model.res.DropDown.GetNotPlacedProposalListRes;
+import com.maan.insurance.model.res.DropDown.GetNotPlacedProposalListRes1;
 import com.maan.insurance.model.res.DropDown.GetOpenPeriodRes;
 import com.maan.insurance.model.res.DropDown.GetOpenPeriodRes1;
 import com.maan.insurance.model.res.DropDown.GetYearToListValueRes;
@@ -136,6 +143,8 @@ public class DropDownServiceImple implements DropDownService{
 	private TtrnBonusRepository bonusRepo;
 	@Autowired
 	private StatusMasterRepository smRepo;
+	@Autowired
+	private SubStatusMasterRepository ssmRepo;
 	
 	
 	@PersistenceContext
@@ -3750,7 +3759,386 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 
 	@Override
 	public GetCommonDropDownRes getSubStatusDropDown(String branchCode, String statusCode) {
-		// TODO Auto-generated method stub
-		return null;
+		GetCommonDropDownRes response = new GetCommonDropDownRes();
+		List<CommonResDropDown> resList = new ArrayList<CommonResDropDown>();
+		try{
+			//GET_SUBSTATUS_DROP_DOWN
+			List<SubStatusMaster> list = ssmRepo.findByBranchCodeAndStatusAndStatusCode(branchCode,"Y",statusCode);
+			
+			if(list.size()>0) {
+      			for(SubStatusMaster data: list) {
+      				CommonResDropDown res = new CommonResDropDown();
+      				res.setCode(data.getSubStatusCode()==null?"":data.getSubStatusCode().toString());
+      				res.setCodeDescription(data.getSubStatusName()==null?"": data.getSubStatusName().toString());;
+      				resList.add(res);
+      			}
+      		}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+    @Transactional
+	@Override
+	public CommonResponse updateBqEditMode(String proposalNo, String val, String updateProposalNo) {
+		CommonResponse response = new CommonResponse();
+		try{
+			//POS_MAS_BQ_MODE_UPDT
+			CriteriaBuilder cb = this.em.getCriteriaBuilder();
+			// create update
+			CriteriaUpdate<PositionMaster> update = cb.createCriteriaUpdate(PositionMaster.class);
+			Root<PositionMaster> m = update.from(PositionMaster.class);
+			
+			if(!"N".equalsIgnoreCase(val)){
+				update.set("editMode", val +"-"+ updateProposalNo);
+				}
+				else{
+					update.set("editMode", val);
+				}
+			// MAXAmend ID
+      		Subquery<Long> maxAmend = update.subquery(Long.class); 
+      		Root<PositionMaster> pms = maxAmend.from(PositionMaster.class);
+      		maxAmend.select(cb.max(pms.get("amendId")));
+      		Predicate a1 = cb.equal(m.get("proposalNo"), pms.get("proposalNo"));
+      		maxAmend.where(a1);
+			
+			Predicate n1 = cb.equal(m.get("bouquetNo"), proposalNo);
+			Predicate n2 = cb.equal(m.get("amendId"), maxAmend);
+			update.where(n1,n2);
+			// perform update
+			em.createQuery(update).executeUpdate();
+			
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public GetCommonDropDownRes getPlacedProposalList(GetPlacedProposalListReq bean) {
+		GetCommonDropDownRes response = new GetCommonDropDownRes();
+		List<CommonResDropDown> resList = new ArrayList<CommonResDropDown>();
+		try{
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 	
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+      		
+      		Root<TtrnRiPlacement> pm = query.from(TtrnRiPlacement.class); 
+      		Root<TtrnRiskDetails> rd = query.from(TtrnRiskDetails.class); 
+      		
+			if(StringUtils.isNotBlank(bean.getBouquetNo())) {
+				if("C".equalsIgnoreCase(bean.getPlacementMode())) {
+					//GET_PLACED_PROPOSAL_BOUQUET
+				
+		      		// Select
+		      		query.multiselect(pm.get("bouquetNo").alias("CODE")).distinct(true) ;  
+		      	//Order By
+					List<Order> orderList = new ArrayList<Order>();
+					orderList.add(cb.asc(pm.get("bouquetNo")));
+
+		      		// Where
+					Predicate n1 = cb.isNotNull(pm.get("bouquetNo"));
+		      		Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+		      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+		      		Predicate n4 = cb.equal(pm.get("bouquetNo"), bean.getBouquetNo());
+					query.where(n1,n2,n3,n4).orderBy(orderList);
+					// Get Result
+		      		TypedQuery<Tuple> list = em.createQuery(query);
+		      		List<Tuple> result = list.getResultList();
+		      		if(result.size()>0) {
+		      			for(Tuple data: result) {
+		      				CommonResDropDown res = new CommonResDropDown();
+		      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+		      				res.setCodeDescription(data.get("CODE")==null?"": data.get("CODE").toString());;
+		      				resList.add(res);
+		      			}
+		      			resList.sort(Comparator.comparing(CommonResDropDown :: getCode));
+		      		}
+					
+				}else {
+					//GET_PLACED_PROPOSAL_BOUQUET_SINGLE
+					Expression<String> e1 = cb.concat(pm.get("proposalNo"), "(");
+					Expression<String> e2 = cb.concat(e1, rd.get("rskTreatyid"));
+					Expression<String> e3 = cb.concat(e2, ")");
+		      		// Select
+		      		query.multiselect(pm.get("proposalNo").alias("CODE"),e3.alias("CODEDESC")).distinct(true) ; 
+		      	//Order By
+					List<Order> orderList = new ArrayList<Order>();
+					orderList.add(cb.asc(pm.get("bouquetNo")));
+
+		      		// Where
+					Predicate n1 = cb.isNotNull(pm.get("bouquetNo"));
+		      		Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+		      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+		      		Predicate n4 = cb.equal(pm.get("bouquetNo"), bean.getBouquetNo());
+					query.where(n1,n2,n3,n4).orderBy(orderList);
+					// Get Result
+		      		TypedQuery<Tuple> list = em.createQuery(query);
+		      		List<Tuple> result = list.getResultList();
+		      		if(result.size()>0) {
+		      			for(Tuple data: result) {
+		      				CommonResDropDown res = new CommonResDropDown();
+		      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+		      				res.setCodeDescription(data.get("CODEDESC")==null?"": data.get("CODEDESC").toString());;
+		      				resList.add(res);
+		      			}
+		      			resList.sort(Comparator.comparing(CommonResDropDown :: getCode));
+		      		}
+				}
+				
+			
+			}else {
+				if("C".equalsIgnoreCase(bean.getPlacementMode())) {
+					//GET_PLACED_PROPOSAL_BASELAYER
+		      		query.multiselect(pm.get("baseProposalNo").alias("CODE")).distinct(true) ; 
+		      		//Order By
+					List<Order> orderList = new ArrayList<Order>();
+					orderList.add(cb.asc(pm.get("baseProposalNo")));
+					Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+		      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+		      		Predicate n4 = cb.equal(pm.get("baseProposalNo"), bean.getBaseProposalNo());
+		      		Predicate n5 = cb.equal(pm.get("proposalNo"), bean.getBaseProposalNo());
+		      		Predicate n6 = cb.or(n4,n5);
+		      		query.where(n2,n3,n6).orderBy(orderList);
+		      	// Get Result
+		      		TypedQuery<Tuple> list = em.createQuery(query);
+		      		List<Tuple> result = list.getResultList();
+		      		if(result.size()>0) {
+		      			for(Tuple data: result) {
+		      				CommonResDropDown res = new CommonResDropDown();
+		      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+		      				res.setCodeDescription(data.get("CODE")==null?"": data.get("CODE").toString());;
+		      				resList.add(res);
+		      			}
+		      			resList.sort(Comparator.comparing(CommonResDropDown :: getCode));
+		      		}
+					
+				}else {
+					//GET_PLACED_PROPOSAL_BASELAYER_SINGLE
+					Expression<String> e1 = cb.concat(pm.get("proposalNo"), "(");
+					Expression<String> e2 = cb.concat(e1, rd.get("rskTreatyid"));
+					Expression<String> e3 = cb.concat(e2, ")");
+		      		query.multiselect(pm.get("proposalNo").alias("CODE"),e3.alias("CODEDESC"),
+		      				cb.selectCase().when(cb.isNull(pm.get("baseProposalNo")), pm.get("proposalNo")).otherwise(pm.get("baseProposalNo")).alias("baseLayer"))
+		      				.distinct(true) ; 
+					//Order By
+//					List<Order> orderList = new ArrayList<Order>();
+//					orderList.add(cb.asc(pm.get("bouquetNo")));
+					Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+		      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+		      		Predicate n4 = cb.equal(pm.get("baseProposalNo"), bean.getBaseProposalNo());
+		      		Predicate n5 = cb.equal(pm.get("proposalNo"), bean.getBaseProposalNo());
+		      		Predicate n6 = cb.or(n4,n5);
+		      		query.where(n2,n3,n6);
+		      	// Get Result
+		      		TypedQuery<Tuple> list = em.createQuery(query);
+		      		List<Tuple> result = list.getResultList();
+		      		if(result.size()>0) {
+		      			for(Tuple data: result) {
+		      				CommonResDropDown res = new CommonResDropDown();
+		      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+		      				res.setCodeDescription(data.get("CODEDESC")==null?"": data.get("CODEDESC").toString());;
+		      				resList.add(res);
+		      			}
+		      			resList.sort(Comparator.comparing(CommonResDropDown :: getCode));
+		      		}
+				}
+				
+			}
+			
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public GetNotPlacedProposalListRes getNotPlacedProposalList(GetPlacedProposalListReq bean) {
+		GetNotPlacedProposalListRes response = new GetNotPlacedProposalListRes();
+		List<GetNotPlacedProposalListRes1> resList = new ArrayList<GetNotPlacedProposalListRes1>();
+		try{
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 	
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+      		
+      		Root<PositionMaster> pm = query.from(PositionMaster.class); 
+      		Root<TtrnRiskDetails> rd = query.from(TtrnRiskDetails.class); 
+      		
+				if(StringUtils.isNotBlank(bean.getBouquetNo())) {
+					if("C".equalsIgnoreCase(bean.getPlacementMode())) {
+						//GET_NOTPLACED_PROPOSAL_BOUQUET
+						
+			      		query.multiselect(pm.get("bouquetNo").alias("CODE")).distinct(true) ;  
+						
+						Subquery<Long> prop = query.subquery(Long.class); 
+			      		Root<TtrnRiPlacement> pms = prop.from(TtrnRiPlacement.class);
+			      		prop.select((pms.get("proposalNo")));
+			      		Predicate a1 = cb.equal(pms.get("bouquetNo"), pm.get("bouquetNo"));
+			      		prop.where(a1);
+			      	
+						Predicate n1 = cb.isNotNull(pm.get("bouquetNo"));
+			      		Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+			      		Predicate n4 = cb.equal(pm.get("bouquetNo"), bean.getBouquetNo());
+			      		Predicate n5 = cb.equal(pm.get("contractStatus"), "P");
+			    		Expression<String> e0 = pm.get("proposalNo");
+			      		Predicate n6 = e0.in(prop).not();
+			      		
+						query.where(n1,n2,n3,n4,n5,n6);
+						
+			      		TypedQuery<Tuple> list = em.createQuery(query);
+			      		List<Tuple> result = list.getResultList();
+			      		if(result.size()>0) {
+			      			for(Tuple data: result) {
+			      				GetNotPlacedProposalListRes1 res = new GetNotPlacedProposalListRes1();
+			      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+			      				res.setCodeDescription(data.get("CODE")==null?"": data.get("CODE").toString());;
+			      				resList.add(res);
+			      			}
+			      			resList.sort(Comparator.comparing(GetNotPlacedProposalListRes1 :: getCode));
+			      		}
+					}else {
+						//GET_NOTPLACED_PROPOSAL_BOUQUET_SINGLE
+						Expression<String> e1 = cb.concat(pm.get("proposalNo"), "(");
+						Expression<String> e2 = cb.concat(e1, rd.get("rskTreatyid"));
+						Expression<String> e3 = cb.concat(e2, ")");
+			      		
+			      		query.multiselect(pm.get("proposalNo").alias("CODE"),e3.alias("CODEDESC")) ; 
+			      	
+						List<Order> orderList = new ArrayList<Order>();
+						orderList.add(cb.asc(pm.get("productId")));
+						orderList.add(cb.asc(pm.get("bouquetNo")));
+						orderList.add(cb.asc(pm.get("proposalNo")));
+	
+						Subquery<Long> prop = query.subquery(Long.class); 
+			      		Root<TtrnRiPlacement> pms = prop.from(TtrnRiPlacement.class);
+			      		prop.select((pms.get("proposalNo")));
+			      		Predicate a1 = cb.equal(pms.get("bouquetNo"), pm.get("bouquetNo"));
+			      		prop.where(a1);
+			      		
+						Predicate n1 = cb.isNotNull(pm.get("bouquetNo"));
+			      		Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+			      		Predicate n4 = cb.equal(pm.get("bouquetNo"), bean.getBouquetNo());
+			      		Predicate n5 = cb.equal(pm.get("contractStatus"), "P");
+			    		Expression<String> e0 = pm.get("proposalNo");
+			      		Predicate n6 = e0.in(prop).not();
+						query.where(n1,n2,n3,n4,n5,n6).orderBy(orderList);
+					
+			      		TypedQuery<Tuple> list = em.createQuery(query);
+			      		List<Tuple> result = list.getResultList();
+			      		if(result.size()>0) {
+			      			for(Tuple data: result) {
+			      				GetNotPlacedProposalListRes1 res = new GetNotPlacedProposalListRes1();
+			      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+			      				res.setCodeDescription(data.get("CODEDESC")==null?"": data.get("CODEDESC").toString());;
+			      				resList.add(res);
+			      			}
+			      		}
+					}
+				}else {
+					if("C".equalsIgnoreCase(bean.getPlacementMode())) {
+						//GET_NOTPLACED_PROPOSAL_BASELAYER
+						query.multiselect(pm.get("baseLayer").alias("CODE")).distinct(true) ; 
+						
+						Subquery<Long> prop = query.subquery(Long.class); 
+			      		Root<TtrnRiPlacement> pms = prop.from(TtrnRiPlacement.class);
+			      		prop.select((pms.get("proposalNo")));
+			      		Predicate a1 = cb.equal(pms.get("baseProposalNo"), pm.get("baseLayer"));
+			      		prop.where(a1);
+			      		
+						Predicate n1 = cb.isNotNull(pm.get("baseLayer"));
+						Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+			      		Predicate n4 = cb.equal(pm.get("baseLayer"), bean.getBaseProposalNo());
+			      		Predicate n5 = cb.equal(pm.get("proposalNo"), bean.getBaseProposalNo());
+			      		Predicate n6 = cb.or(n4,n5);
+			      		Predicate n7 = cb.equal(pm.get("contractStatus"), "P");
+			    		Expression<String> e0 = pm.get("proposalNo");
+			      		Predicate n8 = e0.in(prop).not();
+			      		
+			      		query.where(n1,n2,n3,n6,n7,n8);
+			    
+			      		TypedQuery<Tuple> list = em.createQuery(query);
+			      		List<Tuple> result = list.getResultList();
+			      		if(result.size()>0) {
+			      			for(Tuple data: result) {
+			      				GetNotPlacedProposalListRes1 res = new GetNotPlacedProposalListRes1();
+			      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+			      				res.setCodeDescription(data.get("CODE")==null?"": data.get("CODE").toString());;
+			      				resList.add(res);
+			      			}
+			      			resList.sort(Comparator.comparing(GetNotPlacedProposalListRes1 :: getCode));
+			      		}
+					}else {
+						//GET_NOTPLACED_PROPOSAL_BASELAYER_SINGLE
+						Expression<String> e1 = cb.concat(pm.get("proposalNo"), "(");
+						Expression<String> e2 = cb.concat(e1, rd.get("rskTreatyid"));
+						Expression<String> e3 = cb.concat(e2, ")");
+			      		
+			      		query.multiselect(pm.get("proposalNo").alias("CODE"),e3.alias("CODEDESC"),
+			      			cb.selectCase().when(cb.isNull(pm.get("baseLayer")), pm.get("proposalNo")).otherwise(pm.get("baseLayer")).alias("baseLayer")) ; 
+			      	
+						List<Order> orderList = new ArrayList<Order>();
+						orderList.add(cb.asc(pm.get("productId")));
+						orderList.add(cb.asc(pm.get("baseLayer")));
+						orderList.add(cb.asc(pm.get("proposalNo")));
+	
+						Subquery<Long> prop = query.subquery(Long.class); 
+			      		Root<TtrnRiPlacement> pms = prop.from(TtrnRiPlacement.class);
+			      		prop.select((pms.get("proposalNo")));
+			      		Predicate a1 = cb.equal(pms.get("proposalNo"), pm.get("proposalNo"));
+			      		prop.where(a1);
+			      		
+						
+			      		Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			      		Predicate n3 = cb.equal(pm.get("proposalNo"), rd.get("rskProposalNumber"));
+			      		Predicate n4 = cb.equal(pm.get("baseLayer"), bean.getBaseProposalNo());
+			      		Predicate n5 = cb.equal(pm.get("proposalNo"), bean.getBaseProposalNo());
+			      		Predicate n6 = cb.or(n4,n5);
+			      		Predicate n7 = cb.equal(pm.get("contractStatus"), "P");
+			    		Expression<String> e0 = pm.get("proposalNo");
+			      		Predicate n8 = e0.in(prop).not();
+			      		
+			      		query.where(n2,n3,n6,n7,n8);
+					
+			      		TypedQuery<Tuple> list = em.createQuery(query);
+			      		List<Tuple> result = list.getResultList();
+			      		if(result.size()>0) {
+			      			for(Tuple data: result) {
+			      				GetNotPlacedProposalListRes1 res = new GetNotPlacedProposalListRes1();
+			      				res.setCode(data.get("CODE")==null?"":data.get("CODE").toString());
+			      				res.setCodeDescription(data.get("CODEDESC")==null?"": data.get("CODEDESC").toString());
+			      				res.setBaseLayer(data.get("baseLayer")==null?"": data.get("baseLayer").toString());
+			      				resList.add(res);
+			      			}
+			      		}
+					}
+					}
+				response.setCommonResponse(resList);
+				response.setMessage("Success");
+				response.setIsError(false);
+			}catch(Exception e){
+					log.error(e);
+					e.printStackTrace();
+					response.setMessage("Failed");
+					response.setIsError(true);
+				}
+			return response;
 	}
 }

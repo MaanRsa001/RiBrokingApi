@@ -25,6 +25,7 @@ import com.maan.insurance.model.req.DropDown.GetDepartmentDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetDepartmentieModuleDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetExchangeRateReq;
 import com.maan.insurance.model.req.DropDown.GetInwardBusinessTypeDropDownReq;
+import com.maan.insurance.model.req.DropDown.GetPlacedProposalListReq;
 import com.maan.insurance.model.req.DropDown.GetPreDepartmentDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetProductieModuleDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetProfitCentreieModuleDropDownReq;
@@ -44,6 +45,7 @@ import com.maan.insurance.model.res.DropDown.GetBouquetListRes;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.DropDown.GetCommonValueRes;
 import com.maan.insurance.model.res.DropDown.GetContractValRes;
+import com.maan.insurance.model.res.DropDown.GetNotPlacedProposalListRes;
 import com.maan.insurance.model.res.DropDown.GetOpenPeriodRes;
 
 import com.maan.insurance.model.res.DropDown.GetYearToListValueRes;
@@ -658,9 +660,28 @@ public class DropDownController {
 	public GetCommonDropDownRes getStatusDropDown(@PathVariable("branchCode") String branchCode)throws CommonValidationException {
 		return dropDownservice.getStatusDropDown(branchCode);
 	} 
-	@GetMapping("/getStatusDropDown/{branchCode}/{}statusCode")
+	@GetMapping("/getSubStatusDropDown/{branchCode}/{statusCode}")
 	public GetCommonDropDownRes getSubStatusDropDown(@PathVariable("branchCode") String branchCode,@PathVariable("statusCode") String statusCode)throws CommonValidationException {
 		return dropDownservice.getSubStatusDropDown(branchCode,statusCode);
+	} 
+	@GetMapping("/updateBqEditMode/{proposalNo}/{val}/{updateProposalNo}")
+	public CommonResponse updateBqEditMode(@PathVariable("proposalNo") String proposalNo,@PathVariable("val") String val,@PathVariable("updateProposalNo") String updateProposalNo)throws CommonValidationException {
+		return dropDownservice.updateBqEditMode(proposalNo,val,updateProposalNo);
+	} 
+	@PostMapping("/getPlacedProposalList")
+	public GetCommonDropDownRes getPlacedProposalList(@RequestBody GetPlacedProposalListReq req)throws CommonValidationException {
+		List<ErrorCheck> error = dropDownVali.getPlacedProposalListVali(req);
+		if (error != null && error.size() > 0) {
+			throw new CommonValidationException("error", error);
+		}
+		return dropDownservice.getPlacedProposalList(req);
+	} 
+	@PostMapping("/getNotPlacedProposalList")
+	public GetNotPlacedProposalListRes getNotPlacedProposalList(@RequestBody GetPlacedProposalListReq req)throws CommonValidationException {
+		List<ErrorCheck> error = dropDownVali.getPlacedProposalListVali(req);
+		if (error != null && error.size() > 0) {
+			throw new CommonValidationException("error", error);
+		}
+		return dropDownservice.getNotPlacedProposalList(req);
 	}
-
 }

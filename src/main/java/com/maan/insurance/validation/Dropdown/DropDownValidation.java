@@ -21,6 +21,7 @@ import com.maan.insurance.model.req.DropDown.GetDepartmentieModuleDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetExcludeCountryReq;
 import com.maan.insurance.model.req.DropDown.GetInstallmentsReq;
 import com.maan.insurance.model.req.DropDown.GetInwardBusinessTypeDropDownReq;
+import com.maan.insurance.model.req.DropDown.GetPlacedProposalListReq;
 import com.maan.insurance.model.req.DropDown.GetPreDepartmentDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetProductieModuleDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetProfitCentreieModuleDropDownReq;
@@ -509,6 +510,23 @@ public class DropDownValidation {
 		}
 		if (StringUtils.isBlank(req.getInceptionDate())) {
 			list.add(new ErrorCheck("Please Enter InceptionDate", "InceptionDate", "2"));
+		}
+		return list;
+	}
+
+	public List<ErrorCheck> getPlacedProposalListVali(GetPlacedProposalListReq req) {
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if (StringUtils.isBlank(req.getBranchCode())) {
+			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "1"));
+		}
+//		if (StringUtils.isBlank(req.getBouquetNo())) {
+//			list.add(new ErrorCheck("Please Enter BouquetNo", "BouquetNo", "2"));
+//		}
+		if (StringUtils.isBlank(req.getBaseProposalNo())) {
+			list.add(new ErrorCheck("Please Enter BaseProposalNo", "BaseProposalNo", "3"));
+		}
+		if (StringUtils.isBlank(req.getPlacementMode())) {
+			list.add(new ErrorCheck("Please Enter PlacementMode", "PlacementMode", "4"));
 		}
 		return list;
 	}
