@@ -13,6 +13,15 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Tuple;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.maan.insurance.controller.propPremium.ViewPremiumDetailsRIRes1;
+import com.maan.insurance.model.entity.PersonalInfo;
+import com.maan.insurance.model.entity.PositionMaster;
 import com.maan.insurance.model.entity.RskPremiumDetails;
 import com.maan.insurance.model.entity.RskPremiumDetailsRi;
 import com.maan.insurance.model.entity.RskPremiumDetailsTemp;
@@ -37,6 +48,7 @@ import com.maan.insurance.model.req.propPremium.GetPreListReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumedListReq;
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertLossReserved;
@@ -83,6 +95,8 @@ import com.maan.insurance.model.res.propPremium.GetPremiumReservedRes1;
 import com.maan.insurance.model.res.propPremium.GetPremiumedListRes;
 import com.maan.insurance.model.res.propPremium.GetPremiumedListRes1;
 import com.maan.insurance.model.res.propPremium.GetPreviousPremiumRes;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes1;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes1;
 import com.maan.insurance.model.res.propPremium.GetSPRetroListRes;
@@ -3332,12 +3346,11 @@ public class PropPremiumServiceImple implements PropPremiumService {
 	@Override
 	public ViewPremiumDetailsRIRes viewPremiumDetailsRI(ViewPremiumDetailsRIReq req) {
 		ViewPremiumDetailsRIRes response = new ViewPremiumDetailsRIRes();
-		List<ViewPremiumDetailsRIRes1> resList = new ArrayList<ViewPremiumDetailsRIRes1>();
+		ViewPremiumDetailsRIRes1 res = new ViewPremiumDetailsRIRes1();
 		try {
-			List<RskPremiumDetailsRi> entity =	pdRIRepo.findByTransactionNo(new BigDecimal(req.getTransactionNo()));
-			if(entity.size()>0) {
-				for(RskPremiumDetailsRi data:entity ) {
-					ViewPremiumDetailsRIRes1 res = new ViewPremiumDetailsRIRes1();
+			RskPremiumDetailsRi data =	pdRIRepo.findByTransactionNoAndContractNoAndReinsurerIdAndBranchCode
+					(new BigDecimal(req.getTransactionNo()),new BigDecimal(req.getContractNo()),req.getReinsurerId(),req.getBranchCode()); 
+					if(data!=null) { //CON,BRA,REINID
 					res.setAccountPeriod(data.getAccountPeriodQtr()==null?"":data.getAccountPeriodQtr().toString());	
 					res.setAccountPeriodDate(data.getAccountingPeriodDate()==null?"":data.getAccountingPeriodDate().toString());	
 					res.setAccountPeriodyear(data.getAccountPeriodYear()==null?"":data.getAccountPeriodYear().toString());	
@@ -3401,10 +3414,8 @@ public class PropPremiumServiceImple implements PropPremiumService {
 					res.setWithHoldingTaxDC(data.getWithHoldingTaxDc()==null?"":data.getWithHoldingTaxDc().toString());
 					res.setWithHoldingTaxOC(data.getWithHoldingTaxOc()==null?"":data.getWithHoldingTaxOc().toString());
 					res.setXlCost(data.getXlCostOc()==null?"":data.getXlCostOc().toString());
-					resList.add(res);
-				}
-				
-			}
+					response.setCommonResponse(res);		
+					}
 			response.setMessage("Success");
 			response.setIsError(false);
 		    }catch (Exception e) {
@@ -3429,6 +3440,93 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				res.setProposalNo(tempMap.get("PROPOSAL_NO")==null?"":tempMap.get("PROPOSAL_NO").toString());
 				response.setCommonResponse(res);	
 			}			
+			response.setMessage("Success");
+			response.setIsError(false);
+		    }catch (Exception e) {
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		    return response;
+	}
+	@Override
+	public GetRIPremiumListRes getRIPremiumList(GetRIPremiumListReq req) {
+		GetRIPremiumListRes response = new GetRIPremiumListRes();
+		List<GetRIPremiumListRes1> resList = new ArrayList<GetRIPremiumListRes1>();
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<RskPremiumDetailsRi> pm = query.from(RskPremiumDetailsRi.class);
+						
+			//reInsurerName
+			Subquery<String> reInsurerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi = reInsurerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName1 = cb.concat(pi.get("firstName"), " ");
+			reInsurerName.select(cb.concat(firstName1, pi.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis = maxAmend.from(PersonalInfo.class);
+			maxAmend.select(cb.max(pis.get("amendId")));
+			Predicate b1 = cb.equal( pis.get("customerId"), pi.get("customerId"));
+			maxAmend.where(b1);
+			
+			Predicate a1 = cb.equal( pi.get("customerType"), "R");
+			Predicate a2 = cb.equal( pi.get("customerId"), pm.get("reinsurerId"));
+			Predicate a3 = cb.equal( pi.get("branchCode"), pm.get("branchCode"));
+			Predicate a4 = cb.equal( pi.get("amendId"), maxAmend);
+			reInsurerName.where(a1,a2,a3,a4);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+			
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend1 = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = maxAmend1.from(PersonalInfo.class);
+			maxAmend1.select(cb.max(pis1.get("amendId")));
+			Predicate c1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			maxAmend1.where(c1);
+			
+			Predicate d1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate d2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate d3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi1.get("amendId"), maxAmend1);
+			brokerName.where(d1,d2,d3,d4);
+			
+
+			query.multiselect(reInsurerName.alias("REINSURER_NAME"),brokerName.alias("BROKER_NAME"),
+					pm.get("brokerId").alias("BROKER_ID"),pm.get("brokerage").alias("BROKERAGE"),
+					pm.get("signShared").alias("SIGN_SHARED"),pm.get("reinsurerId").alias("REINSURER_ID")); 
+		
+			
+			Predicate n1 = cb.equal(pm.get("contractNo"), req.getContractNo());
+			Predicate n2 = cb.equal(pm.get("transactionNo"), req.getTransactionNo());
+			Predicate n3 = cb.equal(pm.get("branchCode"), req.getBranchCode());
+			query.where(n1,n2,n3);
+			
+			TypedQuery<Tuple> result = em.createQuery(query);
+			List<Tuple> list = result.getResultList();
+			if(list.size()>0) {
+				for(Tuple data: list) {
+					GetRIPremiumListRes1 res = new GetRIPremiumListRes1();
+					res.setBrokerage(data.get("BROKERAGE")==null?"":data.get("BROKERAGE").toString());
+					res.setBrokerId(data.get("BROKER_ID")==null?"":data.get("BROKER_ID").toString());
+					res.setBrokerName(data.get("BROKER_NAME")==null?"":data.get("BROKER_NAME").toString());
+					res.setReinsurerId(data.get("REINSURER_ID")==null?"":data.get("REINSURER_ID").toString());
+					res.setReInsurerName(data.get("REINSURER_NAME")==null?"":data.get("REINSURER_NAME").toString());
+					res.setSignShared(data.get("SIGN_SHARED")==null?"":data.get("SIGN_SHARED").toString());				
+					resList.add(res);
+				}
+				
+			}		
+			response.setCommonResponse(resList);	
 			response.setMessage("Success");
 			response.setIsError(false);
 		    }catch (Exception e) {

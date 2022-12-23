@@ -40,6 +40,8 @@ import com.maan.insurance.model.req.DropDown.UpdatepositionMasterEndtStatusReq;
 import com.maan.insurance.model.req.DropDown.ValidatethreeReq;
 import com.maan.insurance.model.req.proportionality.ContractReq;
 import com.maan.insurance.model.res.DropDown.CommonResponse;
+import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes;
+import com.maan.insurance.model.res.DropDown.GetBouquetCedentBrokerInfoRes;
 import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes;
 import com.maan.insurance.model.res.DropDown.GetBouquetListRes;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
@@ -683,5 +685,13 @@ public class DropDownController {
 			throw new CommonValidationException("error", error);
 		}
 		return dropDownservice.getNotPlacedProposalList(req);
+	} 
+	@GetMapping("/getBaseLayerExistingList/{branchCode}/{baseProposalNo}")
+	public GetBaseLayerExistingListRes getBaseLayerExistingList(@PathVariable("branchCode") String branchCode,@PathVariable("baseProposalNo") String baseProposalNo)throws CommonValidationException {
+		return dropDownservice.getBaseLayerExistingList(branchCode,baseProposalNo);
+	}  
+	@GetMapping("/getBouquetCedentBrokerInfo/{bouquetNo}")
+	public GetBouquetCedentBrokerInfoRes getBouquetCedentBrokerInfo(@PathVariable("bouquetNo") String bouquetNo)throws CommonValidationException {
+		return dropDownservice.getBouquetCedentBrokerInfo(bouquetNo);
 	}
 }

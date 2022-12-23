@@ -95,6 +95,10 @@ import com.maan.insurance.model.req.proportionality.ContractReq;
 import com.maan.insurance.model.req.proportionality.GetRetroContractDetailsListReq;
 import com.maan.insurance.model.res.DropDown.CommonResDropDown;
 import com.maan.insurance.model.res.DropDown.CommonResponse;
+import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes;
+import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes1;
+import com.maan.insurance.model.res.DropDown.GetBouquetCedentBrokerInfoRes;
+import com.maan.insurance.model.res.DropDown.GetBouquetCedentBrokerInfoRes1;
 import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes;
 import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes1;
 import com.maan.insurance.model.res.DropDown.GetBouquetListRes;
@@ -4092,7 +4096,7 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 						Expression<String> e3 = cb.concat(e2, ")");
 			      		
 			      		query.multiselect(pm.get("proposalNo").alias("CODE"),e3.alias("CODEDESC"),
-			      			cb.selectCase().when(cb.isNull(pm.get("baseLayer")), pm.get("proposalNo")).otherwise(pm.get("baseLayer")).alias("baseLayer")) ; 
+			      			cb.selectCase().when(cb.isNull(pm.get("baseLayer")), pm.get("proposalNo")).otherwise(pm.get("baseLayer").as(BigDecimal.class)).alias("baseLayer")) ; 
 			      	
 						List<Order> orderList = new ArrayList<Order>();
 						orderList.add(cb.asc(pm.get("productId")));
@@ -4140,5 +4144,134 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 					response.setIsError(true);
 				}
 			return response;
+	}
+
+	@Override
+	public GetBaseLayerExistingListRes getBaseLayerExistingList(String branchCode, String baseProposalNo) {
+		GetBaseLayerExistingListRes response = new GetBaseLayerExistingListRes();
+		List<GetBaseLayerExistingListRes1> resList = new ArrayList<GetBaseLayerExistingListRes1>();
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		try{
+			list= queryImpl.selectList("GET_EXISTING_BASELAYER",new String[]{branchCode,baseProposalNo});
+			if(list.size()>0) {
+				for(Map<String,Object> data: list) {
+					GetBaseLayerExistingListRes1 res = new GetBaseLayerExistingListRes1();
+					res.setInsDate(data.get("INS_DATE")==null?"":data.get("INS_DATE").toString());  
+					res.setExpDate(data.get("EXP_DATE")==null?"":data.get("EXP_DATE").toString());  
+					res.setCompanyName(data.get("COMPANY_NAME")==null?"":data.get("COMPANY_NAME").toString());  
+					res.setUwYear(data.get("UW_YEAR")==null?"":data.get("UW_YEAR").toString());  
+					res.setUwYearTo(data.get("UW_YEAR_TO")==null?"":data.get("UW_YEAR_TO").toString());  
+					res.setTreatytype(data.get("TREATYTYPE")==null?"":data.get("TREATYTYPE").toString());  
+					res.setProductId(data.get("PRODUCT_ID")==null?"":data.get("PRODUCT_ID").toString());  
+					res.setBusinessType(data.get("BUSINESS_TYPE")==null?"":data.get("BUSINESS_TYPE").toString());  
+					res.setProposalNo(data.get("PROPOSAL_NO")==null?"":data.get("PROPOSAL_NO").toString());  
+					res.setTreatyType1(data.get("TREATY_TYPE")==null?"":data.get("TREATY_TYPE").toString());  
+					res.setRskTreatyid(data.get("RSK_TREATYID")==null?"":data.get("RSK_TREATYID").toString());  
+					res.setPolicyStatus(data.get("POLICY_STATUS")==null?"":data.get("POLICY_STATUS").toString());  
+					res.setExistingShare(data.get("EXISTING_SHARE")==null?"":data.get("EXISTING_SHARE").toString());  
+					res.setBaseLayer(data.get("BASE_LAYER")==null?"":data.get("BASE_LAYER").toString());  
+					res.setSectionNo(data.get("SECTION_NO")==null?"":data.get("SECTION_NO").toString());  
+					res.setLayerNo(data.get("LAYER_NO")==null?"":data.get("LAYER_NO").toString());  
+					res.setTmasDepartmentName(data.get("TMAS_DEPARTMENT_NAME")==null?"":data.get("TMAS_DEPARTMENT_NAME").toString());  
+					res.setSubClass(data.get("SUB_CLASS")==null?"":data.get("SUB_CLASS").toString());  
+					res.setOfferNo(data.get("OFFER_NO")==null?"":data.get("OFFER_NO").toString());  
+					resList.add(res);
+				}
+		}
+		response.setCommonResponse(resList);
+		response.setMessage("Success");
+		response.setIsError(false);
+	}catch(Exception e){
+			log.error(e);
+			e.printStackTrace();
+			response.setMessage("Failed");
+			response.setIsError(true);
+		}
+	return response;
+	}
+
+	@Override
+	public GetBouquetCedentBrokerInfoRes getBouquetCedentBrokerInfo(String bouquetNo) {
+		GetBouquetCedentBrokerInfoRes response = new GetBouquetCedentBrokerInfoRes();
+		List<GetBouquetCedentBrokerInfoRes1> resList = new ArrayList<GetBouquetCedentBrokerInfoRes1>();
+		try {
+			//GET_BOUQUET_CEDENT_BROKER
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<PositionMaster> pm = query.from(PositionMaster.class);
+			
+			//cedingCompanyName
+			Subquery<String> cedingCompanyName = query.subquery(String.class); 
+			Root<PersonalInfo> pms = cedingCompanyName.from(PersonalInfo.class);
+			cedingCompanyName.select(pms.get("companyName"));
+			Predicate a1 = cb.equal( pm.get("cedingCompanyId"), pms.get("customerId"));
+			Predicate a2 = cb.equal( pm.get("branchCode"), pms.get("branchCode"));
+			Predicate a3 = cb.equal( pms.get("customerType"), "C");
+			cedingCompanyName.where(a1,a2,a3);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+			
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend1 = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = maxAmend1.from(PersonalInfo.class);
+			maxAmend1.select(cb.max(pis1.get("amendId")));
+			Predicate c1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			maxAmend1.where(c1);
+			
+			Predicate d1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate d2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate d3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi1.get("amendId"), maxAmend1);
+			brokerName.where(d1,d2,d3,d4);
+
+			query.multiselect(pm.get("cedingCompanyId").alias("CEDING_COMPANY_ID"),
+					pm.get("brokerId").alias("BROKER_ID"),
+					cedingCompanyName.alias("CEDING_COMPANY_NAME"),
+					brokerName.alias("BROKER_NAME"),
+					pm.get("uwYear").alias("UW_YEAR"),
+					pm.get("uwYearTo").alias("UW_YEAR_TO"),
+					pm.get("inceptionDate").alias("INCEPTION_DATE"),
+					pm.get("expiryDate").alias("EXPIRY_DATE")); 
+		
+
+			Predicate n1 = cb.equal(pm.get("bouquetNo"), bouquetNo);
+			Predicate n2 = cb.equal(pm.get("renewalStatus"), "0");
+//			Predicate n3 = cb.equal(pm.get("amendId"), amend);
+//			query.where(n1,n2,n3).orderBy(orderList);
+//			
+//			TypedQuery<Tuple> res = em.createQuery(query);
+//			List<Tuple> list = res.getResultList();
+//
+//		
+//			if(list!=null && list.size()>0){
+//				for(Tuple data: list) {
+//					GetBouquetCedentBrokerInfoRes1 bean =new GetBouquetCedentBrokerInfoRes1();
+//				bean.setCedingCo(list.get(0).get("CEDING_COMPANY_ID")==null?"":list.get(0).get("CEDING_COMPANY_ID").toString());
+//				bean.setBroker(list.get(0).get("BROKER_ID")==null?"":list.get(0).get("BROKER_ID").toString());
+//				bean.setCedingCompanyName(list.get(0).get("CEDING_COMPANY_NAME")==null?"":list.get(0).get("CEDING_COMPANY_NAME").toString());
+//				bean.setBrokerName(list.get(0).get("BROKER_NAME")==null?"":list.get(0).get("BROKER_NAME").toString());
+//				bean.setUwYear(list.get(0).get("UW_YEAR")==null?"":list.get(0).get("UW_YEAR").toString());
+//				bean.setUwYearTo(list.get(0).get("UW_YEAR_TO")==null?"":list.get(0).get("UW_YEAR_TO").toString());
+//				bean.setIncepDate(list.get(0).get("INCEPTION_DATE")==null?"":list.get(0).get("INCEPTION_DATE").toString());
+//				bean.setExpDate(list.get(0).get("EXPIRY_DATE")==null?"":list.get(0).get("EXPIRY_DATE").toString());
+//				resList.add(bean);
+//			}
+//			}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
 	}
 }

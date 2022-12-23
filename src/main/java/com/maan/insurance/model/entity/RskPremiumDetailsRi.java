@@ -79,9 +79,7 @@ public class RskPremiumDetailsRi implements Serializable {
 	    @Column(name="EXCHANGE_RATE")
 	    private BigDecimal exchangeRate ;
 
-	    @Column(name="BROKERAGE")
-	    private BigDecimal brokerage ;
-
+	  
 	    @Column(name="BROKERAGE_AMT_OC")
 	    private BigDecimal brokerageAmtOc ;
 
@@ -434,6 +432,15 @@ public class RskPremiumDetailsRi implements Serializable {
 	    
 	    @Column(name="CONTRACT_AMEND_ID")
 	    private BigDecimal contractAmendId ;
+	    
+	    @Column(name="REINSURER_ID")
+	    private String reinsurerId ;
+	    
+	    @Column(name="SIGN_SHARED")
+	    private BigDecimal signShared ;
+	    
+	    @Column(name="BROKERAGE")
+	    private BigDecimal brokerage ;
 
 
 	    //--- ENTITY LINKS ( RELATIONSHIP )

@@ -21,6 +21,7 @@ import com.maan.insurance.model.req.propPremium.GetPreListReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumedListReq;
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
@@ -931,6 +932,11 @@ public class PropPremiumValidation {
 			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "01"));
 			}
 		return list;
+	}
+
+	public List<ErrorCheck> getRIPremiumListVali(GetRIPremiumListReq req) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	

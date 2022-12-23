@@ -9,6 +9,7 @@ import com.maan.insurance.model.req.propPremium.GetPreListReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumedListReq;
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
@@ -35,6 +36,7 @@ import com.maan.insurance.model.res.propPremium.GetPremiumDetailsRes;
 import com.maan.insurance.model.res.propPremium.GetPremiumReservedRes1;
 import com.maan.insurance.model.res.propPremium.GetPremiumedListRes;
 import com.maan.insurance.model.res.propPremium.GetPreviousPremiumRes;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes;
 import com.maan.insurance.model.res.propPremium.GetSPRetroListRes;
 import com.maan.insurance.model.res.propPremium.GetSumOfShareSignRes;
@@ -107,5 +109,7 @@ public interface PropPremiumService {
 	ViewPremiumDetailsRIRes viewPremiumDetailsRI(ViewPremiumDetailsRIReq req);
 
 	GetVatInfoRes getVatInfo(GetVatInfoReq req);
+
+	GetRIPremiumListRes getRIPremiumList(GetRIPremiumListReq req);
 
 }

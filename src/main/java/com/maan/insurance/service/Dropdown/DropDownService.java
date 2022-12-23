@@ -24,6 +24,8 @@ import com.maan.insurance.model.req.DropDown.GetYearToListValueReq;
 import com.maan.insurance.model.req.DropDown.SetTerritoryCountryListReq;
 import com.maan.insurance.model.req.proportionality.ContractReq;
 import com.maan.insurance.model.res.DropDown.CommonResponse;
+import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes;
+import com.maan.insurance.model.res.DropDown.GetBouquetCedentBrokerInfoRes;
 import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes;
 import com.maan.insurance.model.res.DropDown.GetBouquetListRes;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
@@ -199,6 +201,10 @@ public interface DropDownService {
 	GetCommonDropDownRes getPlacedProposalList(GetPlacedProposalListReq req);
 
 	GetNotPlacedProposalListRes getNotPlacedProposalList(GetPlacedProposalListReq req);
+
+	GetBaseLayerExistingListRes getBaseLayerExistingList(String branchCode, String baseProposalNo);
+
+	GetBouquetCedentBrokerInfoRes getBouquetCedentBrokerInfo(String bouquetNo);
 
 
 }

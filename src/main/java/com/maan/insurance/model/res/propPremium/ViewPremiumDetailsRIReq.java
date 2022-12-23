@@ -10,15 +10,15 @@ import lombok.Data;
 
 @Data
 public class ViewPremiumDetailsRIReq {
-//	@JsonProperty("AmendId")
-//	private String amendId;
+	@JsonProperty("ReinsurerId")
+	private String reinsurerId;
 	@JsonProperty("TransactionNo")
 	private String transactionNo;
-//	@JsonProperty("BranchCode")
-//	private String branchCode;
-//	
-//	@JsonProperty("CedingId")
-//	private String cedingId;
+	@JsonProperty("BranchCode")
+	private String branchCode;
+	
+	@JsonProperty("ContractNo")
+	private String contractNo;
 //
 //	@JsonProperty("BrokerId")
 //	private String brokerId;

@@ -23,6 +23,7 @@ import com.maan.insurance.model.req.propPremium.GetPreListReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.GetPremiumedListReq;
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
@@ -50,6 +51,7 @@ import com.maan.insurance.model.res.propPremium.GetPremiumDetailsRes;
 import com.maan.insurance.model.res.propPremium.GetPremiumReservedRes1;
 import com.maan.insurance.model.res.propPremium.GetPremiumedListRes;
 import com.maan.insurance.model.res.propPremium.GetPreviousPremiumRes;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes1;
 import com.maan.insurance.model.res.propPremium.GetSPRetroListRes;
@@ -279,5 +281,12 @@ public class PropPremiumController {
 		}
 		return premiumService.getVatInfo(req);	
 	}
-	
+	@PostMapping("/Proppremium/getripremiumlist")
+	public GetRIPremiumListRes getRIPremiumList(@RequestBody GetRIPremiumListReq req) throws CommonValidationException {
+		List<ErrorCheck> error = premiumVali.getRIPremiumListVali(req);
+		if(error!= null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return premiumService.getRIPremiumList(req);	
+	}
 }

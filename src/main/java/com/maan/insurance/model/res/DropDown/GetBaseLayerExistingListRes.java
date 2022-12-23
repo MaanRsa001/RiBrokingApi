@@ -1,17 +1,16 @@
-package com.maan.insurance.model.req.propPremium;
+package com.maan.insurance.model.res.DropDown;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.maan.insurance.controller.propPremium.ViewPremiumDetailsRIRes1;
 import com.maan.insurance.error.ErrorCheck;
-import com.maan.insurance.model.res.proportionality.CommonSaveRes;
 
 import lombok.Data;
+
 @Data
-public class ViewPremiumDetailsRIRes {
+public class GetBaseLayerExistingListRes {
 	@JsonProperty("Result")
-	private ViewPremiumDetailsRIRes1 commonResponse;
+	private List<GetBaseLayerExistingListRes1> commonResponse;
 	
 	@JsonProperty("Message")
 	private String message;
