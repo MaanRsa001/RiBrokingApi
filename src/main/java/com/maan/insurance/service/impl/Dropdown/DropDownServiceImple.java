@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,24 +43,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import com.maan.insurance.model.entity.TtrnInsurerDetails;
-import com.maan.insurance.model.entity.TtrnMndInstallments;
-import com.maan.insurance.model.entity.TtrnRetroCessionary;
-import com.maan.insurance.model.entity.TtrnRiPlacement;
-import com.maan.insurance.model.entity.TtrnRiskCommission;
-import com.maan.insurance.model.entity.TtrnRiskDetails;
 import com.maan.insurance.controller.Dropdown.updateSubEditModeReq;
-import com.maan.insurance.model.entity.CountryMaster;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.PositionMaster;
 import com.maan.insurance.model.entity.StatusMaster;
 import com.maan.insurance.model.entity.SubStatusMaster;
-import com.maan.insurance.model.entity.TmasLedgerMaster;
-import com.maan.insurance.model.entity.TmasTerritoryCountryMapping;
 import com.maan.insurance.model.entity.TtrnBonus;
-import com.maan.insurance.model.entity.TtrnMndInstallments;
+import com.maan.insurance.model.entity.TtrnRiPlacement;
 import com.maan.insurance.model.entity.TtrnRip;
 import com.maan.insurance.model.entity.TtrnRiskCommission;
+import com.maan.insurance.model.entity.TtrnRiskDetails;
 import com.maan.insurance.model.repository.CountryMasterRepository;
 import com.maan.insurance.model.repository.PositionMasterRepository;
 import com.maan.insurance.model.repository.StatusMasterRepository;
@@ -71,6 +62,7 @@ import com.maan.insurance.model.repository.TtrnBonusRepository;
 import com.maan.insurance.model.repository.TtrnInsurerDetailsRepository;
 import com.maan.insurance.model.repository.TtrnMndInstallmentsRepository;
 import com.maan.insurance.model.repository.TtrnRetroCessionaryRepository;
+import com.maan.insurance.model.repository.TtrnRiPlacementRepository;
 import com.maan.insurance.model.repository.TtrnRiskCommissionRepository;
 import com.maan.insurance.model.req.DropDown.DuplicateCountCheckReq;
 import com.maan.insurance.model.req.DropDown.GetClaimDepartmentDropDownReq;
@@ -90,7 +82,6 @@ import com.maan.insurance.model.req.DropDown.GetSubProfitCentreMultiDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetSubProfitCentreMultiReq;
 import com.maan.insurance.model.req.DropDown.GetTreatyTypeDropDownReq;
 import com.maan.insurance.model.req.DropDown.GetYearToListValueReq;
-import com.maan.insurance.model.req.DropDown.SetTerritoryCountryListReq;
 import com.maan.insurance.model.req.proportionality.ContractReq;
 import com.maan.insurance.model.req.proportionality.GetRetroContractDetailsListReq;
 import com.maan.insurance.model.res.DropDown.CommonResDropDown;
@@ -107,10 +98,14 @@ import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.DropDown.GetCommonValueRes;
 import com.maan.insurance.model.res.DropDown.GetContractValRes;
 import com.maan.insurance.model.res.DropDown.GetContractValidationRes;
+import com.maan.insurance.model.res.DropDown.GetNewContractInfoRes;
+import com.maan.insurance.model.res.DropDown.GetNewContractInfoRes1;
 import com.maan.insurance.model.res.DropDown.GetNotPlacedProposalListRes;
 import com.maan.insurance.model.res.DropDown.GetNotPlacedProposalListRes1;
 import com.maan.insurance.model.res.DropDown.GetOpenPeriodRes;
 import com.maan.insurance.model.res.DropDown.GetOpenPeriodRes1;
+import com.maan.insurance.model.res.DropDown.GetPlacementInfoListRes;
+import com.maan.insurance.model.res.DropDown.GetPlacementInfoListRes1;
 import com.maan.insurance.model.res.DropDown.GetYearToListValueRes;
 import com.maan.insurance.model.res.DropDown.GetYearToListValueRes1;
 import com.maan.insurance.model.res.retro.CommonSaveRes;
@@ -149,10 +144,12 @@ public class DropDownServiceImple implements DropDownService{
 	private StatusMasterRepository smRepo;
 	@Autowired
 	private SubStatusMasterRepository ssmRepo;
-	
+	@Autowired
+	private TtrnRiPlacementRepository riPlaceRepo;
 	
 	@PersistenceContext
 	private EntityManager em;
+	
 
 	@Override
 	public GetCommonValueRes EditModeStatus(String proposalNo) {
@@ -4193,7 +4190,7 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 	@Override
 	public GetBouquetCedentBrokerInfoRes getBouquetCedentBrokerInfo(String bouquetNo) {
 		GetBouquetCedentBrokerInfoRes response = new GetBouquetCedentBrokerInfoRes();
-		List<GetBouquetCedentBrokerInfoRes1> resList = new ArrayList<GetBouquetCedentBrokerInfoRes1>();
+		//doubt, output empty here  , sql dev value 
 		try {
 			//GET_BOUQUET_CEDENT_BROKER
 			CriteriaBuilder cb = em.getCriteriaBuilder(); 
@@ -4214,6 +4211,7 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 			Subquery<String> brokerName = query.subquery(String.class); 
 			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
 			
+			//select CASE WHEN PI.CUSTOMER_TYPE = 'C' THEN PI.COMPANY_NAME 
 			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
 			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
 			
@@ -4237,34 +4235,320 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 					pm.get("uwYear").alias("UW_YEAR"),
 					pm.get("uwYearTo").alias("UW_YEAR_TO"),
 					pm.get("inceptionDate").alias("INCEPTION_DATE"),
-					pm.get("expiryDate").alias("EXPIRY_DATE")); 
-		
+					pm.get("expiryDate").alias("EXPIRY_DATE")).distinct(true); 
+
+			//maxamend
+			Subquery<Long> amend = query.subquery(Long.class); 
+			Root<PositionMaster> s = amend.from(PositionMaster.class);
+			amend.select(cb.max(s.get("amendId")));
+			Predicate r1 = cb.equal( pm.get("proposalNo"), s.get("proposalNo"));
+			Predicate r2 = cb.equal( s.get("contractStatus"), "P");
+			amend.where(r1,r2);
 
 			Predicate n1 = cb.equal(pm.get("bouquetNo"), bouquetNo);
-			Predicate n2 = cb.equal(pm.get("renewalStatus"), "0");
-//			Predicate n3 = cb.equal(pm.get("amendId"), amend);
-//			query.where(n1,n2,n3).orderBy(orderList);
-//			
-//			TypedQuery<Tuple> res = em.createQuery(query);
-//			List<Tuple> list = res.getResultList();
-//
-//		
-//			if(list!=null && list.size()>0){
-//				for(Tuple data: list) {
-//					GetBouquetCedentBrokerInfoRes1 bean =new GetBouquetCedentBrokerInfoRes1();
-//				bean.setCedingCo(list.get(0).get("CEDING_COMPANY_ID")==null?"":list.get(0).get("CEDING_COMPANY_ID").toString());
-//				bean.setBroker(list.get(0).get("BROKER_ID")==null?"":list.get(0).get("BROKER_ID").toString());
-//				bean.setCedingCompanyName(list.get(0).get("CEDING_COMPANY_NAME")==null?"":list.get(0).get("CEDING_COMPANY_NAME").toString());
-//				bean.setBrokerName(list.get(0).get("BROKER_NAME")==null?"":list.get(0).get("BROKER_NAME").toString());
-//				bean.setUwYear(list.get(0).get("UW_YEAR")==null?"":list.get(0).get("UW_YEAR").toString());
-//				bean.setUwYearTo(list.get(0).get("UW_YEAR_TO")==null?"":list.get(0).get("UW_YEAR_TO").toString());
-//				bean.setIncepDate(list.get(0).get("INCEPTION_DATE")==null?"":list.get(0).get("INCEPTION_DATE").toString());
-//				bean.setExpDate(list.get(0).get("EXPIRY_DATE")==null?"":list.get(0).get("EXPIRY_DATE").toString());
-//				resList.add(bean);
-//			}
-//			}
+			Predicate n2 = cb.equal(pm.get("contractStatus"), "P");
+			Predicate n3 = cb.equal(pm.get("amendId"), amend);
+			query.where(n1,n2,n3);
+			
+			TypedQuery<Tuple> res = em.createQuery(query);
+			List<Tuple> list = res.getResultList();
+			if(list!=null && list.size()>0){
+				Tuple data = list.get(0);
+				GetBouquetCedentBrokerInfoRes1 bean =new GetBouquetCedentBrokerInfoRes1();
+				bean.setCedingCo(data.get("CEDING_COMPANY_ID")==null?"":data.get("CEDING_COMPANY_ID").toString());
+				bean.setBroker(data.get("BROKER_ID")==null?"":data.get("BROKER_ID").toString());
+				bean.setCedingCompanyName(data.get("CEDING_COMPANY_NAME")==null?"":data.get("CEDING_COMPANY_NAME").toString());
+				bean.setBrokerName(data.get("BROKER_NAME")==null?"":data.get("BROKER_NAME").toString());
+				bean.setUwYear(data.get("UW_YEAR")==null?"":data.get("UW_YEAR").toString());
+				bean.setUwYearTo(data.get("UW_YEAR_TO")==null?"":data.get("UW_YEAR_TO").toString());
+				bean.setIncepDate(data.get("INCEPTION_DATE")==null?"":data.get("INCEPTION_DATE").toString());
+				bean.setExpDate(data.get("EXPIRY_DATE")==null?"":data.get("EXPIRY_DATE").toString());
+				response.setCommonResponse(bean);
+			}
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public CommonSaveRes getBouquetCedentBrokercheck(String bouquetNo, String cedingCo, String broker) {
+		CommonSaveRes response =new CommonSaveRes();
+		boolean result=false;
+		//doubt, output empty here  , sql dev value 
+		try{
+			//GET_BOUQUET_CEDENT_BROKER
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<PositionMaster> pm = query.from(PositionMaster.class);
+			
+			//cedingCompanyName
+			Subquery<String> cedingCompanyName = query.subquery(String.class); 
+			Root<PersonalInfo> pms = cedingCompanyName.from(PersonalInfo.class);
+			cedingCompanyName.select(pms.get("companyName"));
+			Predicate a1 = cb.equal( pm.get("cedingCompanyId"), pms.get("customerId"));
+			Predicate a2 = cb.equal( pm.get("branchCode"), pms.get("branchCode"));
+			Predicate a3 = cb.equal( pms.get("customerType"), "C");
+			cedingCompanyName.where(a1,a2,a3);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+			
+			//select CASE WHEN PI.CUSTOMER_TYPE = 'C' THEN PI.COMPANY_NAME 
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend1 = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = maxAmend1.from(PersonalInfo.class);
+			maxAmend1.select(cb.max(pis1.get("amendId")));
+			Predicate c1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			maxAmend1.where(c1);
+			
+			Predicate d1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate d2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate d3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi1.get("amendId"), maxAmend1);
+			brokerName.where(d1,d2,d3,d4);
+
+			query.multiselect(pm.get("cedingCompanyId").alias("CEDING_COMPANY_ID"),
+					pm.get("brokerId").alias("BROKER_ID"),
+					cedingCompanyName.alias("CEDING_COMPANY_NAME"),
+					brokerName.alias("BROKER_NAME"),
+					pm.get("uwYear").alias("UW_YEAR"),
+					pm.get("uwYearTo").alias("UW_YEAR_TO"),
+					pm.get("inceptionDate").alias("INCEPTION_DATE"),
+					pm.get("expiryDate").alias("EXPIRY_DATE")).distinct(true); 
+
+			//maxamend
+			Subquery<Long> amend = query.subquery(Long.class); 
+			Root<PositionMaster> s = amend.from(PositionMaster.class);
+			amend.select(cb.max(s.get("amendId")));
+			Predicate r1 = cb.equal( pm.get("proposalNo"), s.get("proposalNo"));
+			Predicate r2 = cb.equal( s.get("contractStatus"), "P");
+			amend.where(r1,r2);
+
+			Predicate n1 = cb.equal(pm.get("bouquetNo"), bouquetNo);
+			Predicate n2 = cb.equal(pm.get("contractStatus"), "P");
+			Predicate n3 = cb.equal(pm.get("amendId"), amend);
+			query.where(n1,n2,n3);
+			
+			TypedQuery<Tuple> result1 = em.createQuery(query);
+			List<Tuple> list = result1.getResultList();
+			
+				if(list!=null && list.size()>0){
+					for(int i=0;i<list.size();i++){
+						Tuple map= list.get(i);
+						String res=map.get("CEDING_COMPANY_ID")==null?"":map.get("CEDING_COMPANY_ID").toString();
+						String res1=map.get("BROKER_ID")==null?"":map.get("BROKER_ID").toString();
+						if(!res.equalsIgnoreCase(cedingCo)){
+							result=true;
+						}else if(!res1.equalsIgnoreCase(broker)){
+							result=true;
+						}
+					}
+				}
+				response.setResponse(String.valueOf(result));
+				response.setMessage("Success");
+				response.setIsError(false);
+			}catch(Exception e){
+					log.error(e);
+					e.printStackTrace();
+					response.setMessage("Failed");
+					response.setIsError(true);
+				}
+			return response;
+	}
+
+	@Override
+	public CommonSaveRes gePltDisableStatus(String proposalNo) {
+		CommonSaveRes response = new CommonSaveRes();
+		String status="N";
+		try {
+			//GET_PLDISABLE_STATUS
+			int count = riPlaceRepo.countByProposalNo(new BigDecimal(proposalNo));
+			if(count>0) {
+				 status="Y";
+			}
+			response.setResponse(status);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public CommonSaveRes getUWFromTocheck(String bouquetNo, String uwYear, String uwYearTo) {
+		CommonSaveRes response = new CommonSaveRes();
+		boolean result=false;
+		//doubt, output empty here  , sql dev value 
+		try{
+			//GET_BOUQUET_CEDENT_BROKER
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<PositionMaster> pm = query.from(PositionMaster.class);
+			
+			//cedingCompanyName
+			Subquery<String> cedingCompanyName = query.subquery(String.class); 
+			Root<PersonalInfo> pms = cedingCompanyName.from(PersonalInfo.class);
+			cedingCompanyName.select(pms.get("companyName"));
+			Predicate a1 = cb.equal( pm.get("cedingCompanyId"), pms.get("customerId"));
+			Predicate a2 = cb.equal( pm.get("branchCode"), pms.get("branchCode"));
+			Predicate a3 = cb.equal( pms.get("customerType"), "C");
+			cedingCompanyName.where(a1,a2,a3);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+			
+			//select CASE WHEN PI.CUSTOMER_TYPE = 'C' THEN PI.COMPANY_NAME 
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend1 = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = maxAmend1.from(PersonalInfo.class);
+			maxAmend1.select(cb.max(pis1.get("amendId")));
+			Predicate c1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			maxAmend1.where(c1);
+			
+			Predicate d1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate d2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate d3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi1.get("amendId"), maxAmend1);
+			brokerName.where(d1,d2,d3,d4);
+
+			query.multiselect(pm.get("cedingCompanyId").alias("CEDING_COMPANY_ID"),
+					pm.get("brokerId").alias("BROKER_ID"),
+					cedingCompanyName.alias("CEDING_COMPANY_NAME"),
+					brokerName.alias("BROKER_NAME"),
+					pm.get("uwYear").alias("UW_YEAR"),
+					pm.get("uwYearTo").alias("UW_YEAR_TO"),
+					pm.get("inceptionDate").alias("INCEPTION_DATE"),
+					pm.get("expiryDate").alias("EXPIRY_DATE")).distinct(true); 
+
+			//maxamend
+			Subquery<Long> amend = query.subquery(Long.class); 
+			Root<PositionMaster> s = amend.from(PositionMaster.class);
+			amend.select(cb.max(s.get("amendId")));
+			Predicate r1 = cb.equal( pm.get("proposalNo"), s.get("proposalNo"));
+			Predicate r2 = cb.equal( s.get("contractStatus"), "P");
+			amend.where(r1,r2);
+
+			Predicate n1 = cb.equal(pm.get("bouquetNo"), bouquetNo);
+			Predicate n2 = cb.equal(pm.get("contractStatus"), "P");
+			Predicate n3 = cb.equal(pm.get("amendId"), amend);
+			query.where(n1,n2,n3);
+			
+			TypedQuery<Tuple> result1 = em.createQuery(query);
+			List<Tuple> list = result1.getResultList();
+			
+				if(list!=null && list.size()>0){
+					for(int i=0;i<list.size();i++){
+						Tuple map=list.get(i);
+						String res=map.get("UW_YEAR")==null?"":map.get("UW_YEAR").toString();
+						String res1=map.get("UW_YEAR_TO")==null?"":map.get("UW_YEAR_TO").toString();
+						if(!res.equalsIgnoreCase(uwYear)){
+							result=true;
+						}else if(!res1.equalsIgnoreCase(uwYearTo)){
+							result=true;
+						}
+					}
+				}
+				response.setResponse(String.valueOf(result));
+				response.setMessage("Success");
+				response.setIsError(false);
+			}catch(Exception e){
+					log.error(e);
+					e.printStackTrace();
+					response.setMessage("Failed");
+					response.setIsError(true);
+				}
+			return response;
+	}
+	@Transactional
+	@Override
+	public GetNewContractInfoRes getNewContractInfo(String branchCode, String proposalNo) {
+		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
+		GetNewContractInfoRes response = new GetNewContractInfoRes();
+		List<GetNewContractInfoRes1> resList = new ArrayList<GetNewContractInfoRes1>();
+		try{
+			list= queryImpl.selectList("NEW_CONTRACT_SUMMARY", new String[]{branchCode,proposalNo});
+			if(list != null && list.size()>0) {
+				for(Map<String,Object> data: list) {
+					GetNewContractInfoRes1 res = new GetNewContractInfoRes1();
+					 res.setOfferNo(data.get("OFFER_NO")==null?"":data.get("OFFER_NO").toString()); 
+					 res.setBaseProposal(data.get("BASE_PROPOSAL")==null?"":data.get("BASE_PROPOSAL").toString()); 
+					 res.setProposalNo(data.get("PROPOSAL_NO")==null?"":data.get("PROPOSAL_NO").toString()); 
+					 res.setTreatyName(data.get("TREATY_NAME")==null?"":data.get("TREATY_NAME").toString()); 
+					 res.setLayerSection(data.get("LAYER_SECTION")==null?"":data.get("LAYER_SECTION").toString()); 
+					 res.setSno(data.get("SNO")==null?"":data.get("SNO").toString()); 
+					 res.setReinsurerName(data.get("REINSURER_NAME")==null?"":data.get("REINSURER_NAME").toString()); 
+					  res.setBrokerName(data.get("BROKER_NAME")==null?"":data.get("BROKER_NAME").toString()); 
+					  res.setCurrency(data.get("CURRENCY")==null?"":data.get("CURRENCY").toString()); 
+					  res.setEpi100Oc(data.get("EPI_100_OC")==null?"":data.get("EPI_100_OC").toString()); 
+					  res.setEpi100Dc(data.get("EPI_100_DC")==null?"":data.get("EPI_100_DC").toString()); 
+					  res.setPlacingStatus(data.get("PLACING_STATUS")==null?"":data.get("PLACING_STATUS").toString()); 
+					  res.setShareSigned(data.get("SHARE_SIGNED")==null?"":data.get("SHARE_SIGNED").toString()); 
+					  res.setBrokerage(data.get("BROKERAGE")==null?"":data.get("BROKERAGE").toString()); 
+					  res.setBrokerageAmt(data.get("BROKERAGE_AMT")==null?"":data.get("BROKERAGE_AMT").toString()); 
+					 resList.add(res);
+					 }
+			}
 			response.setCommonResponse(resList);
 			response.setMessage("Success");
+		response.setIsError(false);
+	}catch(Exception e){
+			log.error(e);
+			e.printStackTrace();
+			response.setMessage("Failed");
+			response.setIsError(true);
+		}
+	return response;
+	}
+
+	@Override
+	public GetPlacementInfoListRes getPlacementInfoList(String branchCode, String layerProposalNo) {
+		GetPlacementInfoListRes  response = new GetPlacementInfoListRes();
+		List<Map<String,Object>>list=null;
+		List<GetPlacementInfoListRes1> resList = new ArrayList<GetPlacementInfoListRes1>();
+		try {
+			list= queryImpl.selectList("GET_REINSURER_INFO", new String[]{branchCode,layerProposalNo});
+			if(!CollectionUtils.isEmpty(list)) {
+				for(int i=0;i<list.size();i++) {
+					Map<String,Object>map=list.get(i);
+					GetPlacementInfoListRes1 res = new GetPlacementInfoListRes1();
+					res.setBaseproposalNos(map.get("BASE_PROPOSAL_NO")==null?"":map.get("BASE_PROPOSAL_NO").toString());
+					res.setBouquetNos(map.get("BOUQUET_NO")==null?"":map.get("BOUQUET_NO").toString());
+					res.setBrokerages(map.get("BROKERAGE_PER")==null?"":map.get("BROKERAGE_PER").toString());
+					res.setBrokerIds(map.get("BROKER_ID")==null?"":map.get("BROKER_ID").toString());
+					res.setCurrentStatus(map.get("CURRENT_STATUS")==null?"":map.get("CURRENT_STATUS").toString());
+					res.setNewStatus(map.get("NEW_STATUS")==null?"":map.get("NEW_STATUS").toString());
+					res.setProposedSL(map.get("SHARE_PROPOSED_SIGNED")==null?"":formattereight(map.get("SHARE_PROPOSED_SIGNED").toString()));
+					res.setProposedWL(map.get("SHARE_PROPOSAL_WRITTEN")==null?"":formattereight(map.get("SHARE_PROPOSAL_WRITTEN").toString()));
+					res.setReinsurerIds(map.get("REINSURER_ID")==null?"":map.get("REINSURER_ID").toString());
+					res.setShareOffered(map.get("SHARE_OFFERED")==null?"":formattereight(map.get("SHARE_OFFERED").toString()));
+					res.setSignedLine(map.get("SHARE_SIGNED")==null?"":formattereight(map.get("SHARE_SIGNED").toString()));
+					res.setSnos(map.get("SNO")==null?"":map.get("SNO").toString());
+					res.setWrittenLine(map.get("SHARE_WRITTEN")==null?"":formattereight(map.get("SHARE_WRITTEN").toString()));
+					res.setStatusNo(map.get("STATUS_NO")==null?"":map.get("STATUS_NO").toString());				
+					resList.add(res);
+					} }
+				response.setCommonResponse(resList);
+				response.setMessage("Success");
 			response.setIsError(false);
 		}catch(Exception e){
 				log.error(e);

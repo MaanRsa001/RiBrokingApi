@@ -27,7 +27,7 @@ public class RskPremiumDetailsRiId implements Serializable {
     
     private String     branchCode ;
     
-    private String     cedingId ;
+    private String     reinsurerId ;
     
     private String     brokerId ;
 }

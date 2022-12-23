@@ -155,11 +155,11 @@ public class ViewPremiumDetailsRIRes1 {
 	@JsonProperty("TaxDedectSourceDc")
 	private String taxDedectSourceDc;
 	
-	@JsonProperty("ServiceTax")
-	private String serviceTax;
+	@JsonProperty("VatPremium")
+	private String vatPremium;
 	
-	@JsonProperty("ServiceTaxDc")
-	private String serviceTaxDc;
+	@JsonProperty("VatPremiumDc")
+	private String vatPremiumDc;
 	
 	@JsonProperty("LossParticipation")
 	private String lossParticipation;

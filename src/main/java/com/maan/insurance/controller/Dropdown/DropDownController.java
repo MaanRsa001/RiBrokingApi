@@ -47,9 +47,10 @@ import com.maan.insurance.model.res.DropDown.GetBouquetListRes;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.DropDown.GetCommonValueRes;
 import com.maan.insurance.model.res.DropDown.GetContractValRes;
+import com.maan.insurance.model.res.DropDown.GetNewContractInfoRes;
 import com.maan.insurance.model.res.DropDown.GetNotPlacedProposalListRes;
 import com.maan.insurance.model.res.DropDown.GetOpenPeriodRes;
-
+import com.maan.insurance.model.res.DropDown.GetPlacementInfoListRes;
 import com.maan.insurance.model.res.DropDown.GetYearToListValueRes;
 import com.maan.insurance.model.res.retro.CommonSaveRes;
 
@@ -693,5 +694,25 @@ public class DropDownController {
 	@GetMapping("/getBouquetCedentBrokerInfo/{bouquetNo}")
 	public GetBouquetCedentBrokerInfoRes getBouquetCedentBrokerInfo(@PathVariable("bouquetNo") String bouquetNo)throws CommonValidationException {
 		return dropDownservice.getBouquetCedentBrokerInfo(bouquetNo);
+	} 
+	@GetMapping("/getBouquetCedentBrokercheck/{bouquetNo}/{cedingCo}/{broker}")
+	public CommonSaveRes getBouquetCedentBrokercheck(@PathVariable("bouquetNo") String bouquetNo,@PathVariable("cedingCo") String cedingCo, @PathVariable("broker") String broker)throws CommonValidationException {
+		return dropDownservice.getBouquetCedentBrokercheck(bouquetNo,cedingCo,broker);
+	}  
+	@GetMapping("/gePltDisableStatus/{proposalNo}")
+	public CommonSaveRes gePltDisableStatus(@PathVariable("proposalNo") String proposalNo)throws CommonValidationException {
+		return dropDownservice.gePltDisableStatus(proposalNo);
+	} 
+	@GetMapping("/getUWFromTocheck/{bouquetNo}/{uwYear}/{uwYearTo}")
+	public CommonSaveRes getUWFromTocheck(@PathVariable("bouquetNo") String bouquetNo,@PathVariable("uwYear") String uwYear, @PathVariable("uwYearTo") String uwYearTo)throws CommonValidationException {
+		return dropDownservice.getUWFromTocheck(bouquetNo,uwYear,uwYearTo);
+	}   
+	@GetMapping("/getNewContractInfo/{branchCode}/{proposalNo}")
+	public GetNewContractInfoRes getNewContractInfo(@PathVariable("branchCode") String branchCode, @PathVariable("proposalNo") String proposalNo)throws CommonValidationException {
+		return dropDownservice.getNewContractInfo(branchCode,proposalNo);
+	} 
+	@GetMapping("/getPlacementInfoList/{branchCode}/{layerProposalNo}")
+	public GetPlacementInfoListRes getPlacementInfoList(@PathVariable("branchCode") String branchCode, @PathVariable("layerProposalNo") String layerProposalNo)throws CommonValidationException {
+		return dropDownservice.getPlacementInfoList(branchCode,layerProposalNo);
 	}
 }

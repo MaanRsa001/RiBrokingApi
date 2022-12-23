@@ -7,10 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class GetBouquetCedentBrokerInfoRes {
-	
+public class GetPlacementInfoListRes {
 	@JsonProperty("Result")
-	private GetBouquetCedentBrokerInfoRes1 commonResponse;
+	private List<GetPlacementInfoListRes1> commonResponse;
 
 	@JsonProperty("Message")
 	private String message;

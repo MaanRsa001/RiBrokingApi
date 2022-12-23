@@ -31,8 +31,10 @@ import com.maan.insurance.model.res.DropDown.GetBouquetListRes;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.DropDown.GetCommonValueRes;
 import com.maan.insurance.model.res.DropDown.GetContractValRes;
+import com.maan.insurance.model.res.DropDown.GetNewContractInfoRes;
 import com.maan.insurance.model.res.DropDown.GetNotPlacedProposalListRes;
 import com.maan.insurance.model.res.DropDown.GetOpenPeriodRes;
+import com.maan.insurance.model.res.DropDown.GetPlacementInfoListRes;
 import com.maan.insurance.model.res.DropDown.GetYearToListValueRes;
 import com.maan.insurance.model.res.retro.CommonSaveRes;
 
@@ -205,6 +207,16 @@ public interface DropDownService {
 	GetBaseLayerExistingListRes getBaseLayerExistingList(String branchCode, String baseProposalNo);
 
 	GetBouquetCedentBrokerInfoRes getBouquetCedentBrokerInfo(String bouquetNo);
+
+	CommonSaveRes getBouquetCedentBrokercheck(String bouquetNo, String cedingCo, String broker);
+
+	CommonSaveRes gePltDisableStatus(String proposalNo);
+
+	CommonSaveRes getUWFromTocheck(String bouquetNo, String uwYear, String uwYearTo);
+
+	GetNewContractInfoRes getNewContractInfo(String branchCode, String proposalNo);
+
+	GetPlacementInfoListRes getPlacementInfoList(String branchCode, String layerProposalNo);
 
 
 }

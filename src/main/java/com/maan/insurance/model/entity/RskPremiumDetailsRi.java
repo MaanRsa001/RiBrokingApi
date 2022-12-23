@@ -51,8 +51,8 @@ public class RskPremiumDetailsRi implements Serializable {
 	    private String     branchCode ;
 	    
 	    @Id
-	    @Column(name="CEDING_ID", nullable=false)
-	    private String     cedingId ;
+	    @Column(name="REINSURER_ID", nullable=false)
+	    private String     reinsurerId ;
 	    
 	    @Id
 	    @Column(name="BROKER_ID", nullable=false)
@@ -359,11 +359,11 @@ public class RskPremiumDetailsRi implements Serializable {
 	    @Column(name="TDS_DC")
 	    private BigDecimal tdsDc ;
 
-	    @Column(name="ST_OC")
-	    private BigDecimal stOc ;
+	    @Column(name="VAT_PREMIUM_OC")
+	    private BigDecimal vatPremiumOc ;
 
-	    @Column(name="ST_DC")
-	    private BigDecimal stDc ;
+	    @Column(name="VAT_PREMIUM_DC")
+	    private BigDecimal vatPremiumDc ;
 
 	    @Column(name="SC_COMM_OC")
 	    private BigDecimal scCommOc ;
@@ -433,8 +433,7 @@ public class RskPremiumDetailsRi implements Serializable {
 	    @Column(name="CONTRACT_AMEND_ID")
 	    private BigDecimal contractAmendId ;
 	    
-	    @Column(name="REINSURER_ID")
-	    private String reinsurerId ;
+	  
 	    
 	    @Column(name="SIGN_SHARED")
 	    private BigDecimal signShared ;
