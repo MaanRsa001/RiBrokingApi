@@ -84,7 +84,7 @@ public class PropPremiumValidation {
 		if(StringUtils.isBlank(req.getContNo())) {
 			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
 			}
-		if(StringUtils.isBlank(req.getDepartmentId())) {
+		if(StringUtils.isBlank(req.getSectionNo())) {
 			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "03"));
 			}
 		if(StringUtils.isBlank(req.getType())) {
@@ -112,8 +112,8 @@ public class PropPremiumValidation {
 		if(StringUtils.isBlank(req.getContractNo())) {
 			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
 			}
-		if(StringUtils.isBlank(req.getDepartmentId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "03"));
+		if(StringUtils.isBlank(req.getSectionNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter SectionNo"),"DepartmentId", "03"));
 			}
 		if(StringUtils.isBlank(req.getProposalNo())) {
 			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "04"));
@@ -131,8 +131,8 @@ public class PropPremiumValidation {
 		if(StringUtils.isBlank(req.getContNo())) {
 			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
 			}
-		if(StringUtils.isBlank(req.getDepartmentId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "03"));
+		if(StringUtils.isBlank(req.getSectionNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter SectionNo"),"SectionNo", "03"));
 			}
 		if(StringUtils.isBlank(req.getProposalNo())) {
 			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "04"));
@@ -338,10 +338,10 @@ public class PropPremiumValidation {
 					}else if(dateflag && Validation.ValidateTwo(req.getInceptionDate(),req.getTransaction()).equalsIgnoreCase("invalid"))
 					{
 						 list.add(new ErrorCheck(prop.getProperty("errors.premium.transaction"),"InceptionDate,transaction","01"));
-					}else if(dateflag && Validation.ValidateTwo(req.getAcceptenceDate(),req.getTransaction()).equalsIgnoreCase("invalid"))
+					}/*else if(dateflag && Validation.ValidateTwo(req.getAcceptenceDate(),req.getTransaction()).equalsIgnoreCase("invalid"))
 					{
 						 list.add(new ErrorCheck(prop.getProperty("errors.premium.acDate")+req.getAcceptenceDate(),"AcceptenceDate,transaction","01"));
-					}
+					}*/
 							 
 					if(!val.isNull(openPeriodRes.getOpenPeriodDate()).equalsIgnoreCase("")  && !val.isNull(req.getTransaction()).equalsIgnoreCase("") && !"edit".equalsIgnoreCase(req.getMode())){
 						if(dropDownImple.validatethree(req.getBranchCode(), req.getTransaction())==0){

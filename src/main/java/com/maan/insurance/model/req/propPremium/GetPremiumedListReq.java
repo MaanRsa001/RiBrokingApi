@@ -12,16 +12,16 @@ public class GetPremiumedListReq {
 	@JsonProperty("BranchCode")
 	private String branchCode;
 	
-	@JsonProperty("DepartmentId")
-	private String departmentId;
+	@JsonProperty("SectionNo")
+	private String sectionNo;
 	
 	@JsonProperty("Type")
 	private String type; 
-//	
-//	@JsonProperty("OpstartDate")
-//	private String opstartDate;
-//	
-//	@JsonProperty("OpendDate")
-//	private String opendDate;
+	
+	@JsonProperty("OpstartDate")
+	private String opstartDate;
+	
+	@JsonProperty("OpendDate")
+	private String opendDate;
 	
 }

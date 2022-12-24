@@ -33,8 +33,8 @@ public class GetPremiumedListRes1 {
 	@JsonProperty("AccountPeriodDate")
 	private String accountPeriodDate;
 	
-//	@JsonProperty("TransDropDownVal")
-//	private String transDropDownVal;
+	@JsonProperty("TransDropDownVal")
+	private String transDropDownVal;
 //	
 //	@JsonProperty("EndtYN")
 //	private String endtYN;
@@ -53,13 +53,15 @@ public class GetPremiumedListRes1 {
 	
 	@JsonProperty("TransDate")
 	private String transDate;
-//	@JsonProperty("TransOpenperiodStatus")
-//	private String transOpenperiodStatus;
-//	
-//	@JsonProperty("AllocatedYN")
-//	private String allocatedYN;
+	@JsonProperty("TransOpenperiodStatus")
+	private String transOpenperiodStatus;
+	
+	@JsonProperty("AllocatedYN")
+	private String allocatedYN;
 //	
 //	@JsonProperty("DeleteStatus")
 //	private String deleteStatus;
 
+	@JsonProperty("SectionNo")
+	private String sectionNo;
 }

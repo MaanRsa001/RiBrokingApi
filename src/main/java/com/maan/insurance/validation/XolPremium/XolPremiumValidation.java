@@ -143,20 +143,26 @@ public class XolPremiumValidation {
 			list.add(new ErrorCheck("Please Enter OpendDate", "OpendDate", "3"));
 		}
 		if (StringUtils.isBlank(req.getMode())) {
-			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "5"));
+			list.add(new ErrorCheck("Please Enter Mode", "BranchCode", "5"));
 		}
 		if (StringUtils.isBlank(req.getProductId())) {
-			list.add(new ErrorCheck("Please Enter OpendDate", "OpendDate", "7"));
+			list.add(new ErrorCheck("Please Enter Product Id", "OpendDate", "7"));
 		}
 		if (StringUtils.isBlank(req.getTableType())) {
-			list.add(new ErrorCheck("Please Enter ContractNo", "ContractNo", "9"));
+			list.add(new ErrorCheck("Please Enter Table Type", "ContractNo", "9"));
 		}
-		if (StringUtils.isBlank(req.getRequestNo())) {
-			list.add(new ErrorCheck("Please Enter OpendDate", "OpendDate", "10"));
+		if (StringUtils.isBlank(req.getTransDropDownVal())) {
+		if("Main".equals(req.getTableType())) {
+			if (StringUtils.isBlank(req.getTransactionNo())) {
+				list.add(new ErrorCheck("Please Enter Transaction No", "OpstartDate", "12"));
+			}
+		}else {
+			if (StringUtils.isBlank(req.getRequestNo())) {
+				list.add(new ErrorCheck("Please Enter Request No", "OpendDate", "10"));
+			}
 		}
-//		if (StringUtils.isBlank(req.getTransactionNo())) {
-//			list.add(new ErrorCheck("Please Enter OpstartDate", "OpstartDate", "12"));
-//		}
+		}
+//		
 //		if (StringUtils.isBlank(req.getTransDropDownVal())) {
 //			list.add(new ErrorCheck("Please Enter OpstartDate", "OpstartDate", "13"));
 //		}
@@ -259,7 +265,7 @@ public class XolPremiumValidation {
 						list.add(new ErrorCheck(prop.getProperty("errors.amendmentDate.invalid"),"amendmentDate","01")); 
 							dateflag=false;
 							statDate=false;
-					}else if(Validation.ValidateTwo(bean.getMaxDate(),bean.getAmendmentDate()).equalsIgnoreCase("invalid"))
+					}else if(StringUtils.isNotBlank(bean.getMaxDate()) && Validation.ValidateTwo(bean.getMaxDate(),bean.getAmendmentDate()).equalsIgnoreCase("invalid"))
 					{
 						list.add(new ErrorCheck(prop.getProperty("errors.premium.amendDate"),"premium","01")); 
 						

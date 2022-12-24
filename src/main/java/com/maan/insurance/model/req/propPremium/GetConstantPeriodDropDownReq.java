@@ -14,8 +14,8 @@ public class GetConstantPeriodDropDownReq {
 	private String proposalNo;
 	@JsonProperty("CategoryId")
 	private String categoryId;
-	@JsonProperty("DepartmentId")
-	private String departmentId;
+	@JsonProperty("SectionNo")
+	private String sectionNo;
 	@JsonProperty("ContractNo")
 	private String contractNo;
 }

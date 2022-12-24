@@ -167,11 +167,11 @@ public class PropPremiumServiceImple implements PropPremiumService {
 //	    int allocationstatus = 0;
 //	    int retroPrclStatus = 0;
 	    try {
-	      	args=new String[4];
+	      	args=new String[3];
 	    	args[0]=req.getContNo();
 	    	args[1]=req.getBranchCode();
-	    	args[2]=req.getContNo();
-	    	args[3]=req.getDepartmentId();
+	    	args[2]=req.getSectionNo();
+	    
 	    	if("Main".equalsIgnoreCase(req.getType())){
 	    		
 	    		query="premium.select.PremiumedList";
@@ -188,13 +188,14 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			tempreq.setRequestNo(tempMap.get("REQUEST_NO")==null?"":tempMap.get("REQUEST_NO").toString());
 			tempreq.setProposalNo(tempMap.get("RSK_PROPOSAL_NUMBER")==null?"":tempMap.get("RSK_PROPOSAL_NUMBER").toString());
 			tempreq.setContNo(tempMap.get("RSK_CONTRACT_NO")==null?"":tempMap.get("RSK_CONTRACT_NO").toString());
+			tempreq.setSectionNo(tempMap.get("SECTION_NO")==null?"":tempMap.get("SECTION_NO").toString());
 			//tempreq.setCedingCompanyName(tempMap.get("COMPANY_NAME")==null?"":tempMap.get("COMPANY_NAME").toString());
 			//tempreq.setBroker(tempMap.get("BROKER_NAME")==null?"":tempMap.get("BROKER_NAME").toString());
 			tempreq.setLayerno(tempMap.get("RSK_LAYER_NO")==null?"":tempMap.get("RSK_LAYER_NO").toString());
 			tempreq.setTransactionNo(tempMap.get("TRANSACTION_NO")==null?"":tempMap.get("TRANSACTION_NO").toString());
 			tempreq.setAccountPeriod(tempMap.get("ACC_PER")==null?"":tempMap.get("ACC_PER").toString());
 			tempreq.setAccountPeriodDate(tempMap.get("ACCOUNTING_PERIOD_DATE")==null?"":tempMap.get("ACCOUNTING_PERIOD_DATE").toString());
-			//tempreq.setTransDropDownVal(tempMap.get("REVERSE_TRANSACTION_NO")==null?"":tempMap.get("REVERSE_TRANSACTION_NO").toString());
+			tempreq.setTransDropDownVal(tempMap.get("REVERSE_TRANSACTION_NO")==null?"":tempMap.get("REVERSE_TRANSACTION_NO").toString());
 			
 //			if(Double.parseDouble(tempMap.get("ALLOC_AMT").toString())!=0)
 //				tempreq.setEndtYN("Yes");
@@ -206,53 +207,20 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			//tempreq.setMovementYN(tempMap.get("MOVEMENT_YN")==null?"":tempMap.get("MOVEMENT_YN").toString());
 			
 			tempreq.setTransDate(tempMap.get("TRANSACTION_DATE")==null?"":tempMap.get("TRANSACTION_DATE").toString());
-//			if((StringUtils.isNotBlank(req.getOpstartDate()))&& (StringUtils.isNotBlank(req.getOpendDate()))){
-//				if(dropDownImple.Validatethree(req.getBranchCode(), tempreq.getTransDate())==0){
-//					tempreq.setTransOpenperiodStatus("N");
-//				}else
-//				{
-//					tempreq.setTransOpenperiodStatus("Y");
-//				}
-//				}
-//			query="premium.select.allocatedYN";
-//			list = queryImpl.selectList(query,new String[]{tempreq.getContNo(),tempreq.getTransactionNo(),tempreq.getLayerno()});
-//			if (!CollectionUtils.isEmpty(list)) {
-//				tempreq.setAllocatedYN(list.get(0).get("ALLOCATEDYN") == null ? ""
-//						: list.get(0).get("ALLOCATEDYN").toString());
-//			}
-			
-			
-//			int count=dropDownImple.Validatethree(req.getBranchCode(), tempreq.getTransDate());
-//				String args2[]=new String[1];
-//				args2[0]=tempreq.getTransactionNo();
-//				query="allocation.status";
-//				list = queryImpl.selectList(query,args2);
-//				if (!CollectionUtils.isEmpty(list)) {
-//					allocationstatus = Integer.valueOf(list.get(0).get("COUNT") == null ? ""
-//							: list.get(0).get("COUNT").toString());
-//				}
-				
-				
-//				query="retro.status";
-//				list = queryImpl.selectList(query,args2);
-//				if (!CollectionUtils.isEmpty(list)) {
-//					 retroPrclStatus = Integer.valueOf(list.get(0).get("COUNT") == null ? ""
-//							: list.get(0).get("COUNT").toString());
-//				}
-				
-//				int retroPrclStatus1=0;
-//				if(retroPrclStatus!=0){
-//				query="retro.status1";
-//				list = queryImpl.selectList(query,args2);
-//				if (!CollectionUtils.isEmpty(list)) {
-//					retroPrclStatus1 = Integer.valueOf(list.get(0).get("COUNT") == null ? ""
-//							: list.get(0).get("COUNT").toString());
-//				}
-				
-//				}
-//				if(count!=0 && allocationstatus ==0 &&  retroPrclStatus1 ==0 ){
-//					tempreq.setDeleteStatus("Y");
-//				}
+			if((StringUtils.isNotBlank(req.getOpstartDate()))&& (StringUtils.isNotBlank(req.getOpendDate()))){
+				if(dropDownImple.validatethree(req.getBranchCode(), tempreq.getTransDate())==0){
+					tempreq.setTransOpenperiodStatus("N");
+				}else
+				{
+					tempreq.setTransOpenperiodStatus("Y");
+				}
+				}
+			query="premium.select.allocatedYN";
+			list = queryImpl.selectList(query,new String[]{tempreq.getContNo(),tempreq.getTransactionNo(),tempreq.getLayerno()});
+			if (!CollectionUtils.isEmpty(list)) {
+				tempreq.setAllocatedYN(list.get(0).get("ALLOCATEDYN") == null ? ""
+						: list.get(0).get("ALLOCATEDYN").toString());
+			}
 			finalList.add(tempreq);
 		}
 		response.setCommonResponse(finalList);
@@ -359,7 +327,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			query = "GET_BASE_LAYER";
 			args=new String[2];
 			args[0] = req.getContractNo();
-			args[1] = req.getDepartmentId();
+			args[1] = req.getSectionNo();
             result = queryImpl.selectList(query,args);
             for(int i=0;i<result.size();i++) {
                 Map<String, Object> map = result.get(i);
@@ -370,7 +338,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			if(base.equalsIgnoreCase("0")){
                 args=new String[2];
                 args[0] = proposalNo;
-                args[1] = req.getDepartmentId();
+                args[1] = req.getSectionNo();
                 
 				query = "GET_SLIDE_COMM_VALUE";
 				result = queryImpl.selectList(query,args);
@@ -439,7 +407,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				if(combine.equalsIgnoreCase("2") || preCombine.equalsIgnoreCase("2")|| lossCombine.equalsIgnoreCase("2")) {
                     args=new String[2];
                     args[0] = proposalNo;
-                    args[1] = req.getDepartmentId();
+                    args[1] = req.getSectionNo();
 					query = "GET_SLIDE_COMM_VALUE2";
 				
 					result = queryImpl.selectList(query,args);
@@ -630,10 +598,10 @@ public class PropPremiumServiceImple implements PropPremiumService {
 		 
 		 try {
 			 query="premium.select.treatyContDet";
-			 	args =new String[10];
+			 	args =new String[8];
 			 	args[0] = req.getProductId();
 				args[1] = req.getContNo();
-				args[2] = req.getDepartmentId();
+				args[2] = req.getSectionNo();
 				args[3] = req.getBranchCode();
 				args[4] = req.getBranchCode();
 				
@@ -641,8 +609,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				
 				args[6] = req.getBranchCode();
 				args[7] = req.getBranchCode();
-				args[8] = req.getContNo();
-				args[9] = req.getBranchCode();
+			
 				list = queryImpl.selectList(query,args);
 				for (int i = 0; i < list.size(); i++) {
 					Map<String,Object> tempMap = (Map<String,Object>) list.get(i);
@@ -678,7 +645,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				
 						String count="";
 						if("2".equals(req.getProductId())){
-							count = getCombinedClass(req.getBranchCode(),req.getProductId(),req.getDepartmentId());
+							//count = getCombinedClass(req.getBranchCode(),req.getProductId(),req.getDepartmentId());
 						}
 						if(StringUtils.isBlank(count)){
 							res.setPreDepartment(tempMap.get("RSK_DEPTID")==null?"":tempMap.get("RSK_DEPTID").toString());

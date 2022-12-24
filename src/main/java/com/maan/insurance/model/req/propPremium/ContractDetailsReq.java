@@ -16,8 +16,8 @@ public class ContractDetailsReq {
 	@JsonProperty("BranchCode")
 	private String branchCode;
 	
-	@JsonProperty("DepartmentId")
-	private String departmentId;
+	@JsonProperty("SectionNo")
+	private String sectionNo;
 	
 	@JsonProperty("ProductId")
 	private String productId; 

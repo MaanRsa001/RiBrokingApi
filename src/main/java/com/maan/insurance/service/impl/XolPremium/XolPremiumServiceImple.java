@@ -582,15 +582,28 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 				if( "transEdit".equalsIgnoreCase(req.getMode())){
 					args[0] = req.getContNo();
 					args[1] = req.getTransDropDownVal();
-				
+					if("3".equalsIgnoreCase(req.getProductId())){
+						query="premium.select.treetyXOLPremiumEdit";
+					}
+					else{
+						query= "premium.select.retrotreetyXOLPremiumEdit";
+					}
 					transList= queryImpl.selectList(query, args);
 					 if(transList.size()>0)
 					 {
 						 for(int i=0;i<transList.size();i++){
 							 PremiumEditRes1 bean = new PremiumEditRes1();
 							 Map<String,Object>	 editPremium=transList.get(i);
-							 bean.setCurrencyId(editPremium.get("CURRENCY_ID")==null?"":editPremium.get("CURRENCY_ID").toString());
+							 	bean.setCurrencyId(editPremium.get("CURRENCY_ID")==null?"":editPremium.get("CURRENCY_ID").toString());
 								bean.setCurrency(editPremium.get("CURRENCY_ID")==null?"":editPremium.get("CURRENCY_ID").toString());
+								bean.setAccountPeriod(editPremium.get("ACCOUNT_PERIOD_QTR")==null?"":editPremium.get("ACCOUNT_PERIOD_QTR").toString());
+								if("RP".equalsIgnoreCase(editPremium.get("INSTALMENT_NUMBER")==null?"":editPremium.get("INSTALMENT_NUMBER").toString())||"AP".equalsIgnoreCase(editPremium.get("INSTALMENT_NUMBER")==null?"":editPremium.get("INSTALMENT_NUMBER").toString()) ||"RTP".equalsIgnoreCase(editPremium.get("INSTALMENT_NUMBER")==null?"":editPremium.get("INSTALMENT_NUMBER").toString()) ||"RVP".equalsIgnoreCase(editPremium.get("INSTALMENT_NUMBER")==null?"":editPremium.get("INSTALMENT_NUMBER").toString()))
+						    	{
+						    		bean.setAccountPeriod(editPremium.get("INSTALMENT_NUMBER")==null?"":editPremium.get("INSTALMENT_NUMBER").toString());
+						    	}else
+						    	{
+						    		bean.setAccountPeriod(editPremium.get("INSTALMENT_NUMBER")+"_"+editPremium.get("ACCOUNT_PERIOD_QTR"));
+						    	}
 								if(null==editPremium.get("EXCHANGE_RATE")){
 									GetCommonValueRes common = dropDowmImpl.GetExchangeRate(bean.getCurrencyId(),bean.getTransaction(),req.getCountryId(),req.getBranchCode());
 									bean.setExchRate(common.getCommonResponse());
@@ -664,8 +677,10 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 		                        bean.setDepartmentId(editPremium.get("SUB_CLASS")==null?"":editPremium.get("SUB_CLASS").toString());
 		                        bean.setTaxDedectSource((editPremium.get("TDS_OC")==null?"":editPremium.get("TDS_OC").toString()));
 		                        bean.setTaxDedectSource((getMultipleVal(bean.getTaxDedectSource())));
-		                        bean.setServiceTax(fm.formatter(editPremium.get("ST_OC")==null?"":editPremium.get("ST_OC").toString()));
-		                        bean.setServiceTax((getMultipleVal(bean.getCommissionSurplus())));
+		                        bean.setVatPremium(editPremium.get("VAT_PREMIUM_OC")==null?"":fm.formatter(editPremium.get("VAT_PREMIUM_OC").toString()));
+		                        bean.setVatPremium((getMultipleVal(bean.getVatPremium())));
+	                            bean.setBrokerageVat(editPremium.get("BROKERAGE_VAT_OC")==null?"":fm.formatter(editPremium.get("BROKERAGE_VAT_OC").toString()));
+	                            bean.setBrokerageVat((getMultipleVal(bean.getBrokerageVat())));
 		                        bean.setBonus(fm.formatter(editPremium.get("BONUS_OC")==null?"":editPremium.get("BONUS_OC").toString()));
 		                        bean.setBonus((getMultipleVal(bean.getBonus())));
 		                        bean.setTotalCredit((editPremium.get("TOTAL_CR_OC")==null?"":editPremium.get("TOTAL_CR_OC").toString()));
@@ -749,8 +764,11 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
                        bean.setDepartmentId(editPremium.get("SUB_CLASS")==null?"":editPremium.get("SUB_CLASS").toString());
                        bean.setTaxDedectSource(fm.formatter(editPremium.get("TDS_OC")==null?"":editPremium.get("TDS_OC").toString()));
                        bean.setTaxDedectSourceDc(fm.formatter(editPremium.get("TDS_DC")==null?"":editPremium.get("TDS_DC").toString()));
-                       bean.setServiceTax(fm.formatter(editPremium.get("ST_OC")==null?"":editPremium.get("ST_OC").toString()));
-                       bean.setServiceTaxDc(fm.formatter(editPremium.get("ST_DC")==null?"":editPremium.get("ST_DC").toString()));
+                       bean.setVatPremium(editPremium.get("VAT_PREMIUM_OC")==null?"":fm.formatter(editPremium.get("VAT_PREMIUM_OC").toString()));
+                       bean.setVatPremiumDc(editPremium.get("VAT_PREMIUM_DC")==null?"":fm.formatter(editPremium.get("VAT_PREMIUM_DC").toString()));
+                       bean.setBrokerageVat(editPremium.get("BROKERAGE_VAT_OC")==null?"":fm.formatter(editPremium.get("BROKERAGE_VAT_OC").toString()));
+                       bean.setBrokerageVatDc(editPremium.get("BROKERAGE_VAT_DC")==null?"":fm.formatter(editPremium.get("BROKERAGE_VAT_DC").toString()));
+                       bean.setDocumentType(editPremium.get("DOCUMENT_TYPE")==null?"":editPremium.get("DOCUMENT_TYPE").toString());
                        bean.setBonus(fm.formatter(editPremium.get("BONUS_OC")==null?"":editPremium.get("BONUS_OC").toString()));
                        bean.setBonusDc(fm.formatter(editPremium.get("BONUS_DC")==null?"":editPremium.get("BONUS_DC").toString()));
                        bean.setGnpiDate((editPremium.get("GNPI_ENDT_NO")==null?"":editPremium.get("GNPI_ENDT_NO").toString()));
@@ -807,8 +825,11 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
                    bean.setDepartmentId(xolView.get("SUB_CLASS")==null?"":xolView.get("SUB_CLASS").toString());
                    bean.setTaxDedectSource(fm.formatter(xolView.get("TDS_OC")==null?"0":xolView.get("TDS_OC").toString()));
                    bean.setTaxDedectSourceDc(fm.formatter(xolView.get("TDS_DC")==null?"0":xolView.get("TDS_DC").toString()));
-                   bean.setServiceTax(fm.formatter(xolView.get("ST_OC")==null?"0":xolView.get("ST_OC").toString()));
-                   bean.setServiceTaxDc(fm.formatter(xolView.get("ST_DC")==null?"0":xolView.get("ST_DC").toString()));
+                   bean.setVatPremium(xolView.get("VAT_PREMIUM_OC")==null?"":fm.formatter(xolView.get("VAT_PREMIUM_OC").toString()));
+                   bean.setVatPremiumDc(xolView.get("VAT_PREMIUM_DC")==null?"":fm.formatter(xolView.get("VAT_PREMIUM_DC").toString()));
+                   bean.setBrokerageVat(xolView.get("BROKERAGE_VAT_OC")==null?"":fm.formatter(xolView.get("BROKERAGE_VAT_OC").toString()));
+                   bean.setBrokerageVatDc(xolView.get("BROKERAGE_VAT_DC")==null?"":fm.formatter(xolView.get("BROKERAGE_VAT_DC").toString()));
+                   bean.setDocumentType(xolView.get("DOCUMENT_TYPE")==null?"":xolView.get("DOCUMENT_TYPE").toString());
                    bean.setBonus(fm.formatter(xolView.get("BONUS_OC")==null?"0":xolView.get("BONUS_OC").toString()));
                    bean.setBonusDc(fm.formatter(xolView.get("BONUS_DC")==null?"0":xolView.get("BONUS_DC").toString()));
                    bean.setExchRate(dropDowmImpl.exchRateFormat(xolView.get("EXCHANGE_RATE")==null?"0":xolView.get("EXCHANGE_RATE").toString()));
@@ -944,7 +965,7 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
     	}
 		String[] args=null;	
 		if("3".equalsIgnoreCase(beanObj.getProductId())){
-			args=new String[58];
+			args=new String[61];
 		}else{
 			args=new String[56];
 		}
@@ -1071,12 +1092,11 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 		args[42]=beanObj.getDepartmentId();
 		args[43] = getModeOfTransaction(beanObj.getTaxDedectSource()==null?"0":beanObj.getTaxDedectSource().replaceAll(",", ""),beanObj.getEnteringMode(), beanObj.getShareSigned());
 		args[44] = dropDowmImpl.GetDesginationCountry(args[43], beanObj.getExchRate());
-		args[45] = getModeOfTransaction(beanObj.getServiceTax()==null?"0":beanObj.getServiceTax().replaceAll(",", ""),beanObj.getEnteringMode(), beanObj.getShareSigned());
+		args[45] = getModeOfTransaction(beanObj.getVatPremium()==null?"0":beanObj.getVatPremium().replaceAll(",", ""),beanObj.getEnteringMode(), beanObj.getShareSigned());
 		args[46] = dropDowmImpl.GetDesginationCountry(args[45], beanObj.getExchRate());
 		args[47] = getModeOfTransaction(beanObj.getBonus()==null?"0":beanObj.getBonus().replaceAll(",", ""),beanObj.getEnteringMode(), beanObj.getShareSigned());
 		args[48] = dropDowmImpl.GetDesginationCountry(args[47], beanObj.getExchRate());
-		args[17] = getNetDueXol(args,beanObj.getProductId());
-		args[29]=dropDowmImpl.GetDesginationCountry(args[17],beanObj.getExchRate());
+		
 		beanObj.setTransactionNo(args[1]);
 		args[49] = StringUtils.isEmpty(beanObj.getGnpiDate()) ?"" :beanObj.getGnpiDate();
 		args[50] ="D";
@@ -1093,7 +1113,11 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 			}
 			args[57] = beanObj.getMode();
 		}
-		
+		args[58] = getModeOfTransaction(beanObj.getBrokerageVat(),beanObj.getEnteringMode(), beanObj.getShareSigned());
+		args[59] = dropDowmImpl.GetDesginationCountry(args[58], beanObj.getExchRate());
+		args[60] = beanObj.getDocumentType();
+		args[17] = getNetDueXol(args,beanObj.getProductId());
+		args[29]=dropDowmImpl.GetDesginationCountry(args[17],beanObj.getExchRate());
 		final String[] copiedArray = new String[args.length];
 		System.arraycopy(args, 0, copiedArray, 0, args.length);
 		
@@ -1153,9 +1177,9 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 		final double Hnt=StringUtils.isEmpty(args[37]) ? 0 :Double.parseDouble(args[37]) ;
 		final double Int=StringUtils.isEmpty(args[43]) ? 0 :Double.parseDouble(args[43]) ;
 		final double Jnt=StringUtils.isEmpty(args[45]) ? 0 :Double.parseDouble(args[45]) ;
-		 double Knt =0.00;
-		 Knt=StringUtils.isEmpty(args[47]) ? 0 :Double.parseDouble(args[47]) ;
-	    final double cnt=(Ant+Bnt+Cnt+Int+Jnt)-(Dnt+Ent+Fnt+Gnt+Hnt+Knt);
+		final double Knt=StringUtils.isEmpty(args[47]) ? 0 :Double.parseDouble(args[47]) ;
+		final double Lnt=StringUtils.isEmpty(args[58]) ? 0 :Double.parseDouble(args[58]) ; 
+	    final double cnt=(Ant+Bnt+Cnt+Int+Jnt)-(Dnt+Ent+Fnt+Gnt+Hnt+Knt+Lnt);
 		return String.valueOf(cnt);
 	}
 	private void getTempToMainMove(PremiumInsertMethodReq beanObj, String netDueOc,String RequestNo,String TrancationNo) {
@@ -1171,7 +1195,13 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 			}
 			if( "3".equalsIgnoreCase(beanObj.getProductId())){
 			query= "premium.sp.retroSplit";
-			args = new String[16];
+			args = new String[5];
+			args[0]=beanObj.getContNo();
+			args[1]=StringUtils.isEmpty(beanObj.getLayerno())?"0":beanObj.getLayerno();
+			args[2]=beanObj.getProductId();
+			args[3]=TrancationNo;
+			args[4]=beanObj.getBranchCode();
+			/*args = new String[16];
 			args[0]=beanObj.getContNo();
 			args[1]=StringUtils.isEmpty(beanObj.getLayerno())?"0":beanObj.getLayerno();
 			args[2]=beanObj.getProductId();
@@ -1192,7 +1222,7 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 			args[12]="";
 			args[13]="";
 			args[14]="";
-			args[15]=beanObj.getRicession();
+			args[15]=beanObj.getRicession();*/
 			int spresult= queryImpl.updateQuery(query,args);
 			}
 			else{
@@ -1278,7 +1308,7 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
     	}
 		
 		String[] args=null;				
-		args=new String[45];
+		args=new String[48];
 		args[0]=beanObj.getTransaction();
 		if("3".equalsIgnoreCase(beanObj.getProductId())){
 			args[1]=beanObj.getCurrencyId();
@@ -1389,21 +1419,25 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
         args[33]=beanObj.getDepartmentId();
         args[34] = getModeOfTransaction(beanObj.getTaxDedectSource()==null?"0":beanObj.getTaxDedectSource(),beanObj.getEnteringMode(), beanObj.getShareSigned());
         args[35] =  dropDowmImpl.GetDesginationCountry(args[34], beanObj.getExchRate());
-        args[36] = getModeOfTransaction(beanObj.getServiceTax()==null?"0":beanObj.getServiceTax(),beanObj.getEnteringMode(), beanObj.getShareSigned());
+        args[36] = getModeOfTransaction(beanObj.getVatPremium()==null?"0":beanObj.getVatPremium(),beanObj.getEnteringMode(), beanObj.getShareSigned());
         args[37] =  dropDowmImpl.GetDesginationCountry(args[36], beanObj.getExchRate());
 		args[38] = getModeOfTransaction(beanObj.getBonus(),beanObj.getEnteringMode(), beanObj.getShareSigned());
 		args[39] =  dropDowmImpl.GetDesginationCountry(args[38], beanObj.getExchRate());
-		args[43]=beanObj.getContNo();
+		
+		args[46]=beanObj.getContNo();
 		if("Temp".equalsIgnoreCase(beanObj.getTableType()) &&"3".equalsIgnoreCase(beanObj.getProductId())){
-			args[44]=beanObj.getRequestNo();
+			args[47]=beanObj.getRequestNo();
 		}else{
-			args[44]=beanObj.getTransactionNo();
+			args[47]=beanObj.getTransactionNo();
 		}
-		args[12]=getNetDueXolUpdate(args,beanObj.getProductId());
-		args[21]= dropDowmImpl.GetDesginationCountry(args[12], beanObj.getExchRate());
 		args[40]=StringUtils.isEmpty(beanObj.getGnpiDate()) ?"" :beanObj.getGnpiDate();
 		args[41]=beanObj.getPredepartment();
 		args[42]= beanObj.getStatementDate();
+		args[43] = getModeOfTransaction(beanObj.getBrokerageVat(),beanObj.getEnteringMode(), beanObj.getShareSigned());
+		args[44] = dropDowmImpl.GetDesginationCountry(args[43], beanObj.getExchRate());
+		args[45] = beanObj.getDocumentType();
+		args[12]=getNetDueXolUpdate(args,beanObj.getProductId());
+		args[21]= dropDowmImpl.GetDesginationCountry(args[12], beanObj.getExchRate());
 		final String[] copiedArray = new String[args.length];
 		System.arraycopy(args, 0, copiedArray, 0, args.length);
 		return copiedArray;
@@ -1418,9 +1452,10 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 		double Gnt=StringUtils.isEmpty(args[30]) ? 0 :Double.parseDouble(args[30]) ;
 		double Int=StringUtils.isEmpty(args[34]) ? 0 :Double.parseDouble(args[34]) ;
 		double Jnt=StringUtils.isEmpty(args[36]) ? 0 :Double.parseDouble(args[36]) ;
-		double Knt =0.00;
-			Knt =StringUtils.isEmpty(args[38]) ? 0 :Double.parseDouble(args[38]) ;
-		double c=(Ant+Bnt+Cnt+Int+Jnt)-(Dnt+Ent+Fnt+Gnt+Knt);
+		double Knt =StringUtils.isEmpty(args[38]) ? 0 :Double.parseDouble(args[38]) ;
+		double Lnt =StringUtils.isEmpty(args[43]) ? 0 :Double.parseDouble(args[43]) ;
+			
+		double c=(Ant+Bnt+Cnt+Int+Jnt)-(Dnt+Ent+Fnt+Gnt+Knt+Lnt);
 		return String.valueOf(c);
 	}
 	@Override
@@ -1442,9 +1477,9 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 		   		args[5]=req.getTransactionNo();
 		   		if("3".equalsIgnoreCase(req.getProductId())){
 				   	query= "premium.select.XolPremiumView";
-				   	}else{
-				   		query= "premium.select.retroXolPremiumView";
-				   	}
+			   	}else{
+			   		query= "premium.select.retroXolPremiumView";
+			   	}
 		   	}
 		    List<Map<String,Object>> list = queryImpl.selectList(query, args);
 		    if(list!=null && list.size()>0) {
@@ -1487,8 +1522,11 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
                             bean.setDepartmentId(xolView.get("SUB_CLASS")==null?"":xolView.get("SUB_CLASS").toString());
                             bean.setTaxDedectSource(xolView.get("TDS_OC")==null?"":fm.formatter(xolView.get("TDS_OC").toString()));
                             bean.setTaxDedectSourceDc(xolView.get("TDS_DC")==null?"":fm.formatter(xolView.get("TDS_DC").toString()));
-                            bean.setServiceTax(xolView.get("ST_OC")==null?"":fm.formatter(xolView.get("ST_OC").toString()));
-                            bean.setServiceTaxDc(xolView.get("ST_OC")==null?"":fm.formatter(xolView.get("ST_DC").toString()));
+                            bean.setVatPremium(xolView.get("VAT_PREMIUM_OC")==null?"":fm.formatter(xolView.get("VAT_PREMIUM_OC").toString()));
+                            bean.setVatPremiumDc(xolView.get("VAT_PREMIUM_DC")==null?"":fm.formatter(xolView.get("VAT_PREMIUM_DC").toString()));
+                            bean.setBrokerageVat(xolView.get("BROKERAGE_VAT_OC")==null?"":fm.formatter(xolView.get("BROKERAGE_VAT_OC").toString()));
+                            bean.setBrokerageVatDc(xolView.get("BROKERAGE_VAT_DC")==null?"":fm.formatter(xolView.get("BROKERAGE_VAT_DC").toString()));
+                            bean.setDocumentType(xolView.get("DOCUMENT_TYPE")==null?"":xolView.get("DOCUMENT_TYPE").toString());
                             bean.setBonus(xolView.get("BONUS_OC")==null?"":fm.formatter(xolView.get("BONUS_OC").toString()));
                             bean.setBonusDc(xolView.get("BONUS_DC")==null?"":fm.formatter(xolView.get("BONUS_DC").toString()));
             				bean.setExchRate(dropDowmImpl.exchRateFormat(xolView.get("EXCHANGE_RATE")==null?"":xolView.get("EXCHANGE_RATE").toString()));
