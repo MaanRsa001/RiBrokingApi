@@ -3,6 +3,7 @@ package com.maan.insurance.service.XolPremium;
 
 import org.springframework.stereotype.Service;
 
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.xolPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.xolPremium.GetAdjPremiumReq;
 import com.maan.insurance.model.req.xolPremium.GetPremiumDetailsReq;
@@ -14,6 +15,7 @@ import com.maan.insurance.model.req.xolPremium.PremiumInsertMethodReq;
 import com.maan.insurance.model.res.facPremium.GetAllocatedListRes;
 import com.maan.insurance.model.res.facPremium.GetDepartmentIdRes;
 import com.maan.insurance.model.res.propPremium.CurrencyListRes;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes;
 import com.maan.insurance.model.res.xolPremium.CommonResponse;
 import com.maan.insurance.model.res.xolPremium.CommonSaveRes;
@@ -73,6 +75,8 @@ public interface XolPremiumService {
 	GetAllocatedListRes getAllocatedList(String contNo, String transactionNo);
 
 	CommonSaveRes getAdjPremium(GetAdjPremiumReq req);
+
+	GetRIPremiumListRes getRIPremiumList(GetRIPremiumListReq req);
 
 
 

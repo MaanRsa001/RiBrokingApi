@@ -53,6 +53,14 @@ Gson gson = new Gson();
 			throw new CommonValidationException("error",error);
 		}
 		return serv.getExistingReinsurerList(req);
+	} 
+	@PostMapping("/getExistingBrokerList")
+	public GetCommonDropDownRes getExistingBrokerList(@RequestBody GetExistingReinsurerListReq req) throws CommonValidationException {
+		List<ErrorCheck> error= val.getExistingReinsurerListVali(req);
+		if(error!=null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return serv.getExistingBrokerList(req);
 	}
 
 }

@@ -60,6 +60,18 @@ private static final long serialVersionUID = 1L;
 
     @Column(name="BASE_CURRENCY_ID")
     private BigDecimal baseCurrencyId ;
+    
+    @Column(name="COMPANY_CODE", length=30)
+    private String     companyCode ;
+    
+    @Column(name="CORE_APP_CODE", length=20)
+    private String     coreAppCode ;
+    
+    @Column(name="COUNTRY_ID")
+    private BigDecimal countryId ;
+    
+    @Column(name="COUNTRY_SHORT_NAME", length=10)
+    private String     countryShortName ;
 
     @Column(name="DESC_CURRENCY_ID")
     private BigDecimal descCurrencyId ;
@@ -67,23 +79,8 @@ private static final long serialVersionUID = 1L;
     @Column(name="STATUS", length=1)
     private String     status ;
 
-    @Column(name="COUNTRY_ID")
-    private BigDecimal countryId ;
-
-    @Column(name="CORE_APP_CODE", length=20)
-    private String     coreAppCode ;
-
-    @Column(name="COMPANY_CODE", length=30)
-    private String     companyCode ;
-
-    @Column(name="COUNTRY_SHORT_NAME", length=10)
-    private String     countryShortName ;
-
-    @Column(name="VAT_YN", length=10)
-    private String     vatYn ;
-
-    @Column(name="VAT_PERCENT", length=10)
-    private String     vatPercent ;
+    @Column(name="VAT_RATE")
+    private String     vatRate ;
 
 
     //--- ENTITY LINKS ( RELATIONSHIP )

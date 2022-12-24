@@ -3,13 +3,14 @@ package com.maan.insurance.model.res.propPremium;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.maan.insurance.error.ErrorCheck;
+
 import lombok.Data;
+
 @Data
-public class GetSPRetroListRes {
-	
+public class ViewRIPremiumListRes {
 	@JsonProperty("Result")
-	private List<GetSPRetroListRes1> commonResponse;
-	
+	private List<ViewRIPremiumListRes1> commonResponse;
 	
 	@JsonProperty("Message")
 	private String message;
@@ -18,7 +19,7 @@ public class GetSPRetroListRes {
 	private Boolean isError;
 
 	@JsonProperty("ErrorMessage")
-	private List<Error> errors;
+	private List<ErrorCheck> errors;
 
 	@JsonProperty("ErroCode")
 	private int erroCode;

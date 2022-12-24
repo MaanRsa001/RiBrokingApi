@@ -18,7 +18,6 @@ public class GetAdjPremiumReq {
 	private String layerno;
 	@JsonProperty("Currency")
 	private String currency;
-	
 	@JsonProperty("Predepartment")
 	private String predepartment;
 

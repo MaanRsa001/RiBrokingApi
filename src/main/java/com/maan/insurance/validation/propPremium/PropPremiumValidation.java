@@ -922,21 +922,30 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> getVatInfoVali(GetVatInfoReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getBranchCode())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
 	
 		if(StringUtils.isBlank(req.getPremiumAmount())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter PremiumAmount"),"PremiumAmount", "03"));
+			list.add(new ErrorCheck("Please Enter PremiumAmount","PremiumAmount", "03"));
 			}
 		if(StringUtils.isBlank(req.getProposalNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "01"));
+			list.add(new ErrorCheck("Please Enter ProposalNo","ProposalNo", "01"));
 			}
 		return list;
 	}
 
 	public List<ErrorCheck> getRIPremiumListVali(GetRIPremiumListReq req) {
-		// TODO Auto-generated method stub
-		return null;
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if (StringUtils.isBlank(req.getBranchCode())) {
+			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "1"));
+		}
+		if (StringUtils.isBlank(req.getContractNo())) {
+			list.add(new ErrorCheck("Please Enter ContractNo", "ContractNo", "2"));
+		}
+		if (StringUtils.isBlank(req.getTransactionNo())) {
+			list.add(new ErrorCheck("Please Enter TransactionNo", "TransactionNo", "3"));
+		}
+		return list;
 	}
 
 	

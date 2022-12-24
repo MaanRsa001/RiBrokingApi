@@ -5,6 +5,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,14 +34,17 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.view.xslt.XsltView;
 
 import com.maan.insurance.controller.propPremium.ViewPremiumDetailsRIRes1;
+import com.maan.insurance.model.entity.CurrencyMaster;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.PositionMaster;
 import com.maan.insurance.model.entity.RskPremiumDetails;
 import com.maan.insurance.model.entity.RskPremiumDetailsRi;
 import com.maan.insurance.model.entity.RskPremiumDetailsTemp;
+import com.maan.insurance.model.entity.TmasBranchMaster;
 import com.maan.insurance.model.repository.RskPremiumDetailsRIRepository;
 import com.maan.insurance.model.repository.RskPremiumDetailsRepository;
 import com.maan.insurance.model.repository.RskPremiumDetailsTempRepository;
+import com.maan.insurance.model.repository.TmasBranchMasterRepository;
 import com.maan.insurance.model.req.propPremium.ClaimTableListReq;
 import com.maan.insurance.model.req.propPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetCashLossCreditReq1;
@@ -117,7 +121,8 @@ import com.maan.insurance.model.res.propPremium.premiumUpdateMethodRes;
 import com.maan.insurance.model.res.propPremium.premiumUpdateMethodRes1;
 
 import com.maan.insurance.model.res.propPremium.ViewPremiumDetailsRIReq;
-
+import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes;
+import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes1;
 import com.maan.insurance.model.res.proportionality.CommonSaveRes;
 import com.maan.insurance.service.impl.QueryImplemention;
 import com.maan.insurance.service.impl.Dropdown.DropDownServiceImple;
@@ -145,7 +150,8 @@ public class PropPremiumServiceImple implements PropPremiumService {
 	private RskPremiumDetailsTempRepository pdTempRepo;
 	@Autowired
 	private RskPremiumDetailsRIRepository pdRIRepo;
-	
+	@Autowired
+	private TmasBranchMasterRepository bmRepo;
 	
 	@PersistenceContext
 	private EntityManager em;
@@ -1024,9 +1030,8 @@ public class PropPremiumServiceImple implements PropPremiumService {
 	@Override
 	public GetSPRetroListRes getSPRetroList(GetSPRetroListReq req) {
 		GetSPRetroListRes response = new GetSPRetroListRes();
-		GetSPRetroListRes1 res = new GetSPRetroListRes1();
 		List<Map<String, Object>> list=new ArrayList<Map<String, Object>>();
-		List<GetSPRetroListRes> reslist = new ArrayList<>();
+		List<GetSPRetroListRes1> reslist = new ArrayList<GetSPRetroListRes1>();
 		try{
 			String query="";
 			String args[]=null;
@@ -1036,12 +1041,12 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			list=queryImpl.selectList(query,args); 
 			for (int i = 0; i < list.size(); i++) {
 				Map<String, Object> tempMap = (Map<String, Object>) list.get(i);
-				
+				GetSPRetroListRes1 res = new GetSPRetroListRes1();
 				res.setSpRetro(tempMap.get("RSK_SP_RETRO") == null ? "" : tempMap.get("RSK_SP_RETRO").toString());
 				res.setNoOfInsurers(tempMap.get("RSK_NO_OF_INSURERS") == null ? "" : tempMap.get("RSK_NO_OF_INSURERS").toString());
 				res.setProposalNo(tempMap.get("RSK_PROPOSAL_NUMBER") == null ? "" : tempMap.get("RSK_PROPOSAL_NUMBER").toString());
-				reslist.add(response);			}
-			
+				reslist.add(res);		
+				}
 			response.setCommonResponse(reslist);
 			response.setMessage("Success");
 			response.setIsError(false);	
@@ -3451,10 +3456,10 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			}
 		    return response;
 	}
-	@Override
-	public GetRIPremiumListRes getRIPremiumList(GetRIPremiumListReq req) {
-		GetRIPremiumListRes response = new GetRIPremiumListRes();
-		List<GetRIPremiumListRes1> resList = new ArrayList<GetRIPremiumListRes1>();
+	@Override 
+	public ViewRIPremiumListRes viewRIPremiumList(GetRIPremiumListReq req) { //getPremiumDetails response
+		ViewRIPremiumListRes response = new ViewRIPremiumListRes();
+		List<ViewRIPremiumListRes1> resList = new ArrayList<ViewRIPremiumListRes1>();
 		SimpleDateFormat sdf = new  SimpleDateFormat("dd/MM/yyyy");
 		try {
 			CriteriaBuilder cb = em.getCriteriaBuilder(); 
@@ -3515,7 +3520,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			List<Tuple> list = result.getResultList();
 			if(list.size()>0) {
 				for(Tuple data1: list) {
-					GetRIPremiumListRes1 res = new GetRIPremiumListRes1();
+					ViewRIPremiumListRes1 res = new ViewRIPremiumListRes1();
 					RskPremiumDetailsRi data = (RskPremiumDetailsRi) data1.get("table");	
 					
 					res.setBrokerage(data1.get("BROKERAGE")==null?"":data1.get("BROKERAGE").toString());
@@ -3528,115 +3533,145 @@ public class PropPremiumServiceImple implements PropPremiumService {
 					res.setContNo(data.getContractNo()==null?"":data.getContractNo().toString());
 					res.setTransactionNo(data.getTransactionNo()==null?"":data.getTransactionNo().toString());
 					res.setTransaction(data.getTransactionMonthYear()==null?"":sdf.format(data.getTransactionMonthYear()));
-					res.setBrokerage(data.getBrokerageAmtOc()==null?"":data.getBrokerageAmtOc().toString());
-					res.setTax(data.getTax()==null?"":data.getTax().toString());
-					res.setMdpremium(data.getMDpremiumOc()==null?"":data.getMDpremiumOc().toString());
-					res.setAdjustmentpremium(data.getAdjustmentPremiumOc()	==null?"":data.getAdjustmentPremiumOc().toString());					
-					res.setRecuirementpremium(data.getRecPremiumOc()==null?"":data.getRecPremiumOc().toString());
-					res.setNetDue(data.getNetdueOc()==null?"":data.getNetdueOc().toString());
-					res.setLayerno(data.getLayerNo()==null?"":data.getLayerNo().toString());
-					res.setEnteringMode(data.getEnteringMode()==null?"":data.getEnteringMode().toString());
-					res.setAccountPeriod(data.getInstalmentNumber()+data.getAccountPeriodQtr()==null?"":("_"+data.getAccountPeriodQtr()));
-					res.setCurrencyId(data.getCurrencyId()==null?"":data.getCurrencyId().toString());
-					res.setOtherCost(data.getCurrencyId()==null?"":data.getCurrencyId().toString());
-					res.setBrokerageusd(data.getCurrencyId()==null?"":data.getCurrencyId().toString());
-					res.setTaxusd(data.getTaxAmtDc()==null?"":data.getTaxAmtDc().toString());
-					res.setMdpremiumusd(data.getMDpremiumDc()==null?"":data.getMDpremiumDc().toString());
-					res.setAdjustmentpremiumusd(data.getAdjustmentPremiumDc()==null?"":data.getAdjustmentPremiumDc().toString());
-					res.setRecuirementpremiumusd(data.getRecPremiumDc()==null?"":data.getRecPremiumDc().toString());
-					res.setNetdueusd(data.getNetdueDc()==null?"":data.getNetdueDc().toString());
-					res.setOtherCostUSD(data.getOtherCostDc()==null?"":data.getOtherCostDc().toString());
-					res.setInceptionDate(data.getEntryDate()==null?"":sdf.format(data.getEntryDate()));
-					res.setCedentRef(data.getCedantReference()==null?"":data.getCedantReference().toString());
-					res.setRemarks(data.getRemarks()==null?"":data.getRemarks().toString());
-					res.setTotalCredit(data.getTotalCrOc()==null?"":data.getTotalCrOc().toString());
-					res.setTotalCreditDC(data.getTotalCrDc()==null?"":data.getTotalCrDc().toString());
-					res.setTotalDebit(data.getTotalDrOc()==null?"":data.getTotalDrOc().toString());
-					res.setTotalDebitDC(data.getTotalDrDc()==null?"":data.getTotalDrDc().toString());
-					res.setAmendmentDate(data.getAmendmentDate()==null?"":sdf.format(data.getAmendmentDate()));
-                    res.setWithHoldingTaxOC(data.getWithHoldingTaxOc()==null?"":data.getWithHoldingTaxOc().toString());
-                    res.setWithHoldingTaxDC(data.getWithHoldingTaxDc()==null?"":data.getWithHoldingTaxDc().toString());
-                 //   res.setDueDate(xolView.get("DUE_DATE")==null?"":xolView.get("DUE_DATE").toString());
-                    res.setCreditsign(data.getNetdueOc()==null?"":data.getNetdueOc().toString());
-                    res.setRicession(data.getRiCession()==null?"":data.getRiCession().toString());
-                    res.setPredepartment(data.getPremiumClass()==null?"":data.getPremiumClass().toString());
-                    res.setDepartmentId(data.getSubClass()==null?"":data.getSubClass().toString());
-                    res.setTaxDedectSource(data.getTdsOc()==null?"":data.getTdsOc().toString());
-                    res.setTaxDedectSourceDc(data.getTdsDc()==null?"":data.getTdsDc().toString());
-                    res.setVatPremiumOc(data.getVatPremiumOc()==null?"":data.getVatPremiumOc().toString());
-                    res.setVatPremiumDc(data.getVatPremiumDc()==null?"":data.getVatPremiumDc().toString());
-                    res.setBonus(data.getBonusOc()==null?"":data.getBonusOc().toString());
-                    res.setBonusDc(data.getBonusDc()==null?"":data.getBonusDc().toString());
-    				res.setExchRate(dropDownImple.exchRateFormat(data.getExchangeRate()==null?"":data.getExchangeRate().toString()));
-                    res.setGnpiDate(data.getGnpiEndtNo()==null?"":sdf.format(data.getGnpiEndtNo()));
-                    res.setStatementDate(data.getStatementDate()==null?"":sdf.format(data.getStatementDate()));
-                    res.setChooseTransaction(data.getReverselStatus()==null?"":data.getReverselStatus().toString());
-                    res.setTransDropDownVal(data.getReverseTransactionNo()==null?"":data.getReverseTransactionNo().toString());
+					res.setBrokerage(data.getBrokerageAmtOc()==null?"":dropDownImple.formatter(data.getBrokerageAmtOc().toString()));
+					res.setTax(data.getTaxAmtOc()==null?"":dropDownImple.formatter(data.getTaxAmtOc().toString()));
+					res.setPremiumQuotaShare(data.getPremiumQuotashareOc()==null?"":dropDownImple.formatter(data.getPremiumQuotashareOc().toString()));
+					res.setCommissionQuotaShare(data.getCommissionQuotashareOc()==null?"":dropDownImple.formatter(data.getCommissionQuotashareOc().toString()));
+					res.setPremiumSurplus(data.getPremiumSurplusOc()==null?"":dropDownImple.formatter(data.getPremiumSurplusOc().toString()));
+					res.setCommissionSurplus(data.getCommissionSurplusOc()==null?"":dropDownImple.formatter(data.getCommissionSurplusOc().toString()));
+					res.setPremiumportifolioIn(data.getPremiumPortfolioinOc()==null?"":dropDownImple.formatter(data.getPremiumPortfolioinOc().toString()));
+					res.setCliamPortfolioin(data.getClaimPortfolioinOc()==null?"":dropDownImple.formatter(data.getClaimPortfolioinOc().toString()));
+					res.setPremiumportifolioout(data.getPremiumPortfoliooutOc()==null?"":dropDownImple.formatter(data.getPremiumPortfoliooutOc().toString()));
+						
+			
+						res.setLossReserveReleased(data.getLossReserveReleasedOc()==null?"":dropDownImple.formatter(data.getLossReserveReleasedOc().toString()));
+						res.setPremiumReserveQuotaShare(data.getPremiumreserveQuotashareOc()==null?"":dropDownImple.formatter(data.getPremiumreserveQuotashareOc().toString()));
+						res.setCashLossCredit(data.getCashLossCreditOc()==null?"":dropDownImple.formatter(data.getCashLossCreditOc().toString()));
+						res.setLossReserveRetained(data.getLossReserveReleasedOc()==null?"":dropDownImple.formatter(data.getLossReserveReleasedOc().toString()));
+						
+						res.setProfitCommission(data.getProfitCommissionOc()==null?"":dropDownImple.formatter(data.getProfitCommissionOc().toString()));
+						res.setCashLossPaid(data.getCashLosspaidOc()==null?"":dropDownImple.formatter(data.getCashLosspaidOc().toString()));
+						res.setNetDue(data.getNetdueOc()==null?"":dropDownImple.formatter(data.getNetdueOc().toString()));
+						res.setReceiptno(data.getReceiptNo()==null?"":data.getReceiptNo().toString());
 					
-					
-//					res.setAccountPeriod(data.getAccountPeriodQtr()==null?"":data.getAccountPeriodQtr().toString());	
-//					res.setAccountPeriodDate(data.getAccountingPeriodDate()==null?"":sdf.format(data.getAccountingPeriodDate().toString()));	
-//					res.setAccountPeriodyear(data.getAccountPeriodYear()==null?"":data.getAccountPeriodYear().toString());	
-//					res.setAdjustmentpremium(data.getAdjustmentPremiumOc()==null?"":data.getAdjustmentPremiumOc().toString());
-//					res.setAmendmentDate(data.getAmendmentDate()==null?"":data.getAmendmentDate().toString());
-//					res.setBrokerage(data.getBrokerage()==null?"":data.getBrokerage().toString());
-//					res.setCashLossCredit(data.getCashLossCreditOc()==null?"":data.getCashLossCreditOc().toString());
-//					res.setCashLossPaid(data.getCashLosspaidOc()==null?"":data.getCashLosspaidOc().toString());;
-//					res.setCedentRef(data.getCedantReference()==null?"":data.getCedantReference ().toString());
-//					res.setClaimspaid(data.getClaimsPaidOc()==null?"":data.getClaimsPaidOc().toString());
-//					res.setCliamPortfolioin(data.getClaimPortfolioinOc()==null?"":data.getClaimPortfolioinOc().toString());
-//					res.setCliamportfolioout(data.getClaimPortfolioOutOc()==null?"":data.getClaimPortfolioOutOc().toString());					
-//					res.setCommission(data.getCommission()==null?"":data.getCommission().toString());	
-//					res.setCommissionQuotaShare(data.getCommissionQuotashareOc()==null?"":data.getCommissionQuotashareOc().toString());	
-//					res.setCommissionSurplus(data.getCommissionSurplusOc()==null?"":data.getCommissionSurplusOc().toString());	
-//					res.setCurrency(data.getCurrencyId()==null?"":data.getCurrencyId().toString());	
-//					res.setCurrencyId(data.getCurrencyId()==null?"":data.getCurrencyId().toString());	
-//					res.setEnteringMode(data.getEnteringMode()==null?"":data.getEnteringMode().toString());
-//					res.setExchRate(data.getExchangeRate()==null?"":data.getExchangeRate().toString());
-//					res.setInceptionDate(data.getEntryDate()==null?"":data.getEntryDate().toString());
-//					res.setInstlmentNo(data.getInstalmentNumber()==null?"":data.getInstalmentNumber().toString());
-//					res.setInterest(data.getInterestOc()==null?"":data.getInterestOc().toString());
-//					res.setLossParticipation(data.getLpcOc()==null?"":data.getLpcOc().toString());
-//					res.setLossParticipationDC(data.getLpcDc()==null?"":data.getLpcDc().toString());
-//					res.setLossReserveReleased(data.getLossReserveReleasedOc()==null?"":data.getLossReserveReleasedOc().toString());
-//					res.setLossReserveRetained(data.getLossReserveretainedOc()==null?"":data.getLossReserveretainedOc().toString());
-//					res.setLrAllocatedAmount(data.getLrdAllocatedTillDate()==null?"":data.getLrdAllocatedTillDate().toString());
-//					res.setMdpremium(data.getMDpremiumOc()==null?"":data.getMDpremiumOc().toString());
-//					res.setNetDue(data.getNetdueOc()==null?"":data.getNetdueOc().toString());	
-//					res.setOsbYN(data.getOsbyn()==null?"":data.getOsbyn().toString());
-//					res.setOsClaimsLossUpdateOC(data.getOsclaimLossupdateOc()==null?"":data.getOsclaimLossupdateOc().toString());
-//					res.setOtherCost(data.getOtherCostOc()==null?"":data.getOtherCostOc().toString());
-//					res.setOverriderUSD(data.getOverriderAmtDc()==null?"":data.getOverriderAmtDc().toString());
-//					res.setOverrider(data.getOverrider()==null?"":data.getOverrider().toString());
-//					res.setPrAllocatedAmount(data.getPrdAllocatedTillDate()==null?"":data.getPrdAllocatedTillDate().toString());
-//					res.setPredepartment(data.getPremiumClass()==null?"":data.getPremiumClass().toString());
-//					res.setPremiumportifolioIn(data.getPremiumPortfolioinOc()==null?"":data.getPremiumPortfolioinOc().toString());
-//					res.setPremiumportifolioout(data.getPremiumPortfoliooutOc()==null?"":data.getPremiumPortfoliooutOc().toString());
-//					res.setPremiumQuotaShare(data.getPremiumQuotashareOc()==null?"":data.getPremiumQuotashareOc().toString());
-//					res.setPremiumReserveQuotaShare(data.getPremiumreserveQuotashareOc()==null?"":data.getPremiumreserveQuotashareOc().toString());
-//					res.setPremiumReserveReleased(data.getPremiumReserveRealsedOc()==null?"":data.getPremiumReserveRealsedOc().toString());
-//					res.setPremiumSurplus(data.getPremiumSubclass()==null?"":data.getPremiumSubclass().toString());
-//					res.setProfitCommission(data.getProfitCommissionOc()==null?"":data.getProfitCommissionOc().toString());
-//					res.setReceiptno(data.getReceiptNo()==null?"":data.getReceiptNo().toString());
-//					res.setRecuirementpremium(data.getRecPremiumOc()==null?"":data.getRecPremiumOc().toString());
-//					res.setRemarks(data.getRemarks()==null?"":data.getRemarks().toString());
-//					res.setRicession(data.getRiCession()==null?"":data.getRiCession().toString());
-//					res.setSectionName(data.getSectionName()==null?"":data.getSectionName().toString());
-//	//				res.setSectionType(data.gets);
-//					res.setVatPremium(data.getVatPremiumOc()==null?"":data.getVatPremiumOc().toString());
-//					res.setVatPremiumDc(data.getVatPremiumDc()==null?"":data.getVatPremiumDc().toString());
-//					res.setSlideScaleCom(data.getScCommOc()==null?"":data.getScCommOc().toString());
-//					res.setSlideScaleComDC(data.getScCommDc()==null?"":data.getScCommDc().toString());
-//					res.setStatementDate(data.getStatementDate()==null?"":data.getStatementDate().toString());
-//					res.setStatus(data.getStatus()==null?"":data.getStatus().toString());
-//					res.setSubProfitId(data.getPremiumSubclass()==null?"":data.getPremiumSubclass().toString());
-//					res.setTax(data.getTax()==null?"":data.getTax().toString());
-//					res.setTaxDedectSource(data.getTdsOc()==null?"":data.getTdsOc().toString());
-//					res.setTaxDedectSourceDc(data.getTdsDc()==null?"":data.getTdsDc().toString());
-//					res.setTransaction(data.getTransactionNo()==null?"":data.getTransactionNo().toString());
-//					res.setWithHoldingTaxDC(data.getWithHoldingTaxDc()==null?"":data.getWithHoldingTaxDc().toString());
-//					res.setWithHoldingTaxOC(data.getWithHoldingTaxOc()==null?"":data.getWithHoldingTaxOc().toString());
-//					res.setXlCost(data.getXlCostOc()==null?"":data.getXlCostOc().toString());
+						res.setClaimsPaid(data.getClaimsPaidOc()==null?"":dropDownImple.formatter(data.getClaimsPaidOc().toString()));
+						res.setInceptionDate(data.getEntryDate()==null?"":sdf.format(data.getEntryDate()));
+						res.setXlCost(data.getXlCostOc()==null?"":dropDownImple.formatter(dropDownImple.formatter(data.getXlCostOc().toString())));
+						res.setCliamPortfolioOut(data.getClaimPortfolioOutOc()==null?"":dropDownImple.formatter(data.getClaimPortfolioOutOc().toString()));
+						res.setPremiumReserveReleased(data.getPremiumReserveRealsedOc()==null?"":dropDownImple.formatter(data.getPremiumReserveRealsedOc().toString()));
+						res.setAccountPeriod(data.getAccountPeriodQtr()==null?"":data.getAccountPeriodQtr().toString());
+						res.setAccountPeriodYear(data.getAccountPeriodYear()==null?"":data.getAccountPeriodYear().toString());
+						res.setCurrencyId(data.getCurrencyId()==null?"":data.getCurrencyId().toString());
+						res.setOtherCost(data.getOtherCostOc()==null?"":dropDownImple.formatter(data.getOtherCostOc().toString()));
+						res.setBrokerageUsd(data.getBrokerageAmtDc()==null?"":dropDownImple.formatter(data.getBrokerageAmtDc().toString()));
+						res.setTaxUsd(data.getTaxAmtDc()==null?"":dropDownImple.formatter(data.getTaxAmtDc().toString()));
+						res.setPremiumQuotaShareUsd(data.getPremiumreserveQuotashareDc()==null?"":dropDownImple.formatter(data.getPremiumreserveQuotashareDc().toString()));
+						res.setCommsissionQuotaShareUsd(data.getCommissionQuotashareDc()==null?"":dropDownImple.formatter(data.getCommissionQuotashareDc().toString()));
+						res.setPremiumSurplusUsd(data.getPremiumSurplusDc()==null?"":dropDownImple.formatter(data.getPremiumSurplusDc().toString()));
+						res.setComissionSurplusUsd(data.getCommissionSurplusDc()==null?"":dropDownImple.formatter(data.getCommissionSurplusDc().toString()));
+						res.setPremiumPortfolioInUsd(data.getPremiumPortfolioinDc()==null?"":dropDownImple.formatter(data.getPremiumPortfolioinDc().toString()));
+						res.setCliamPortfolioUsd(data.getClaimPortfolioinDc()==null?"":dropDownImple.formatter(data.getClaimPortfolioinDc().toString()));
+						res.setPremiumPortfolioOutUsd(data.getPremiumPortfoliooutDc()==null?"":dropDownImple.formatter(data.getPremiumPortfoliooutDc().toString()));
+						res.setLossReserveReleasedUsd(data.getLossReserveReleasedDc()==null?"":dropDownImple.formatter(data.getLossReserveReleasedDc().toString()));
+						res.setPremiumReserveQuotaShareUsd(data.getPremiumreserveQuotashareDc()==null?"":dropDownImple.formatter(data.getPremiumreserveQuotashareDc().toString()));
+						res.setCashLossCreditUsd(data.getCashLossCreditDc()==null?"":dropDownImple.formatter(data.getCashLossCreditDc().toString()));
+						res.setLossReserveRetainedUsd(data.getLossReserveretainedDc()==null?"":dropDownImple.formatter(data.getLossReserveretainedDc().toString()));
+						res.setProfitCommissionUsd(data.getProfitCommissionDc()==null?"":dropDownImple.formatter(data.getProfitCommissionDc().toString()));
+						res.setCashLossPaidUsd(data.getCashLosspaidDc()==null?"":dropDownImple.formatter(data.getCashLosspaidDc().toString()));
+						res.setClamsPaidUsd(data.getClaimsPaidDc()==null?"":dropDownImple.formatter(data.getClaimsPaidDc().toString()));
+						res.setXlCostUsd(data.getXlCostDc()==null?"":dropDownImple.formatter(data.getXlCostDc().toString()));
+						res.setCliamPortfolioOutUsd(data.getClaimPortfolioOutDc()==null?"":dropDownImple.formatter(data.getClaimPortfolioOutDc().toString()));
+						res.setPremiumReserveReleasedUsd(data.getPremiumReserveRealsedDc()==null?"":dropDownImple.formatter(data.getPremiumReserveRealsedDc().toString()));
+						res.setNetDueUsd(data.getNetdueDc()==null?"":dropDownImple.formatter(data.getNetdueDc().toString()));
+						res.setOtherCostUSD(data.getOtherCostDc()==null?"":dropDownImple.formatter(data.getOtherCostDc().toString()));
+						res.setCedentRef(data.getCedantReference()==null?"":data.getCedantReference().toString());
+						res.setRemarks(data.getRemarks()==null?"":data.getRemarks().toString());
+						res.setTotalCredit(data.getTotalCrOc()==null?"":dropDownImple.formatter(data.getTotalCrOc().toString()));
+						res.setTotalCreditDC(data.getTotalCrDc()==null?"":dropDownImple.formatter(data.getTotalCrDc().toString()));
+						res.setTotalDebit(data.getTotalDrOc()==null?"":dropDownImple.formatter(data.getTotalDrOc().toString()));
+						res.setTotalDebitDC(data.getTotalDrDc()==null?"":dropDownImple.formatter(data.getTotalDrDc().toString()));
+						res.setInterest(data.getInterestOc()==null?"":dropDownImple.formatter(data.getInterestOc().toString()));
+						res.setInterestDC(data.getInterestDc()==null?"":dropDownImple.formatter(data.getInterestDc().toString()));
+						res.setOsClaimsLossUpdateOC(data.getOsclaimLossupdateOc()==null?"":dropDownImple.formatter(data.getOsclaimLossupdateOc().toString()));
+						res.setOsClaimsLossUpdateDC(data.getOsclaimLossupdateDc()==null?"":dropDownImple.formatter(data.getOsclaimLossupdateDc().toString()));
+						res.setOverrider(data.getOverriderAmtOc()==null?"":dropDownImple.formatter(data.getOverriderAmtOc().toString()));
+						res.setOverriderUSD(data.getOverriderAmtDc()==null?"":dropDownImple.formatter(data.getOverriderAmtDc().toString()));
+						res.setAmendmentDate(data.getAmendmentDate()==null?"":sdf.format(data.getAmendmentDate()));
+		                res.setWithHoldingTaxOC(data.getWithHoldingTaxOc()==null?"":dropDownImple.formatter(data.getWithHoldingTaxOc().toString()));
+		                res.setWithHoldingTaxDC(data.getWithHoldingTaxDc()==null?"":dropDownImple.formatter(data.getWithHoldingTaxDc().toString()));
+		               // res.setDueDate(data.getdutempMap.get("DUE_DATE")==null?"":tempMap.get("DUE_DATE").toString());
+		                res.setCreditsign(data.getNetdueOc()==null?"":data.getNetdueOc().toString());
+		                res.setRiCession(data.getRiCession()==null?"":data.getRiCession().toString());
+		                res.setTaxDedectSource(data.getTdsOc()==null?"":dropDownImple.formatter(data.getTdsOc().toString()));
+						res.setTaxDedectSourceDc(data.getTdsDc()==null?"":dropDownImple.formatter(data.getTdsDc().toString()));
+						res.setVatPremiumOc(data.getVatPremiumOc()==null?"":dropDownImple.formatter(data.getVatPremiumOc().toString()));
+						res.setVatPremiumDc(data.getVatPremiumDc()==null?"":dropDownImple.formatter(data.getVatPremiumDc().toString()));
+						res.setLossParticipation(data.getLpcOc()==null?"":dropDownImple.formatter(data.getLpcOc().toString()));
+						res.setLossParticipationDC(data.getLpcDc()==null?"":dropDownImple.formatter(data.getLpcDc().toString()));
+						res.setSlideScaleCom(data.getScCommOc()==null?"":dropDownImple.formatter(data.getScCommOc().toString()));
+						res.setSlideScaleComDC(data.getScCommDc()==null?"":dropDownImple.formatter(data.getScCommDc().toString()));
+					//	res.setSubProfitId(data.gettempMap.get("SUB")==null?"":tempMap.get("SUB").toString());
+//						if(!"ALL".equalsIgnoreCase(res.getSubProfitId())){
+//						res.setSubProfitId(data.getPremiumSubclass()==null?"":data.getPremiumSubclass().toString());
+//						}
+						res.setExchRate(dropDownImple.exchRateFormat(data.getExchangeRate()==null?"":dropDownImple.formatter(data.getExchangeRate().toString())));
+						res.setStatementDate(data.getStatementDate()==null?"":data.getStatementDate().toString());
+						// res.setPremiumClass(data.getdeptempMap.get("TMAS_DEPARTMENT_NAME")==null?"":tempMap.get("TMAS_DEPARTMENT_NAME").toString());
+//			                res.setPremiumSubClass(tempMap.get("SUB")==null?"":tempMap.get("SUB").toString());
+//			                if(!"ALL".equalsIgnoreCase(res.getPremiumSubClass())){
+//			                	res.setPremiumSubClass(tempMap.get("PREMIUM_SUBCLASS")==null?"":tempMap.get("PREMIUM_SUBCLASS").toString());
+//			                }
+			                res.setOsbYN(data.getOsbyn()==null?"":data.getOsbyn().toString());
+			                res.setSectionName(data.getSectionName()==null?"":data.getSectionName().toString());
+			                res.setAccDate(data.getAccountingPeriodDate()==null?"":sdf.format(data.getAccountingPeriodDate())) ;
+				
+				 	//premium.select.sumOfPaidPremium
+				 	List<RskPremiumDetailsRi> list1 =	pdRIRepo.findByContractNo(new BigDecimal(req.getContractNo()));
+				 	int sum =0;
+				 	if(list1.size()>0) {
+				 		for(RskPremiumDetailsRi data2: list1) {
+				 		int	temp = data2.getPremiumQuotashareOc()==null?0:data2.getPremiumQuotashareOc().intValue();
+				 		sum = sum+temp;
+				 		}
+				 		res.setSumOfPaidPremium(String.valueOf(sum));
+				 	}				 	
+				 	
+
+
+			   	if(StringUtils.isNotBlank(res.getCurrencyId())){
+			   		//premium.select.currency
+					CriteriaQuery<String> query1 = cb.createQuery(String.class); 
+					Root<CurrencyMaster> cm = query1.from(CurrencyMaster.class);
+					query1.select(cm.get("shortName")); 
+
+					// MAXAmend ID
+					Subquery<Long> amend = query1.subquery(Long.class); 
+					Root<CurrencyMaster> pms = amend.from(CurrencyMaster.class);
+					amend.select(cb.max(pms.get("amendId")));
+					Predicate p1 = cb.equal( cm.get("branchCode"), pms.get("branchCode"));
+					Predicate p2 = cb.equal( cm.get("countryId"), pms.get("countryId"));
+					Predicate p3 = cb.equal( cm.get("currencyId"), pms.get("currencyId"));
+					Predicate p4 = cb.equal( cm.get("status"), pms.get("status"));
+					amend.where(p1,p2,p3,p4);
+
+					Predicate m1 = cb.equal(cm.get("currencyId"), res.getCurrencyId());
+					Predicate m2 = cb.equal(cm.get("branchCode"), req.getBranchCode());
+					Predicate m3 = cb.equal(cm.get("amendId"), amend);
+					Predicate m4 = cb.equal(cm.get("status"), "Y");
+					query1.where(m1,m2,m3,m4);
+					TypedQuery<String> res1 = em.createQuery(query1);
+					List<String> list12 = res1.getResultList();
+					if (!CollectionUtils.isEmpty(list12)) {
+						res.setCurrency(list12.get(0) == null ? ""
+								: list12.get(0).toString());
+					}
+			   	}
+			   //premium.select.currecy.name
+			   	TmasBranchMaster bm = bmRepo.findByBranchCode(req.getBranchCode());				
+			   	if (bm != null) {
+					res.setCurrencyName(bm.getCountryShortName() == null ? ""
+							: bm.getCountryShortName().toString());
+				}
 					
 					resList.add(res);
 				}

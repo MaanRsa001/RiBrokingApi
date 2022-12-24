@@ -13,4 +13,6 @@ public interface PlacementService {
 
 	GetCommonDropDownRes getExistingReinsurerList(GetExistingReinsurerListReq req);
 
+	GetCommonDropDownRes getExistingBrokerList(GetExistingReinsurerListReq req);
+
 }

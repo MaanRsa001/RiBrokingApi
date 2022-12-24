@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.maan.insurance.error.ErrorCheck;
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.xolPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.xolPremium.GetAdjPremiumReq;
 import com.maan.insurance.model.req.xolPremium.GetPremiumDetailsReq;
@@ -491,8 +492,40 @@ public class XolPremiumValidation {
 	}
 
 	public List<ErrorCheck> getAdjPremiumVali(GetAdjPremiumReq req) {
-		// TODO Auto-generated method stub
-		return null;
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if (StringUtils.isBlank(req.getBranchCode())) {
+			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "1"));
+		}
+		if (StringUtils.isBlank(req.getContNo())) {
+			list.add(new ErrorCheck("Please Enter ContractNo", "ContractNo", "2"));
+		}
+		if (StringUtils.isBlank(req.getCurrency())) {
+			list.add(new ErrorCheck("Please Enter Currency", "Currency", "3"));
+		}
+		if (StringUtils.isBlank(req.getGnpiDate())) {
+			list.add(new ErrorCheck("Please Enter GnpiDate", "GnpiDate", "4"));
+		}
+		if (StringUtils.isBlank(req.getLayerno())) {
+			list.add(new ErrorCheck("Please Enter Layerno", "Layerno", "5"));
+		}
+		if (StringUtils.isBlank(req.getPredepartment())) {
+			list.add(new ErrorCheck("Please Enter Predepartment", "Predepartment", "6"));
+		}
+		return list;
+	}
+
+	public List<ErrorCheck> getRIPremiumListVali(GetRIPremiumListReq req) {
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if (StringUtils.isBlank(req.getBranchCode())) {
+			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "1"));
+		}
+		if (StringUtils.isBlank(req.getContractNo())) {
+			list.add(new ErrorCheck("Please Enter ContractNo", "ContractNo", "2"));
+		}
+		if (StringUtils.isBlank(req.getTransactionNo())) {
+			list.add(new ErrorCheck("Please Enter TransactionNo", "TransactionNo", "3"));
+		}
+		return list;
 	}
 
 }

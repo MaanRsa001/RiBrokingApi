@@ -2,16 +2,31 @@ package com.maan.insurance.service.impl.XolPremium;
 
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Tuple;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.maan.insurance.model.entity.PersonalInfo;
+import com.maan.insurance.model.entity.RskPremiumDetailsRi;
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.xolPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.xolPremium.GetAdjPremiumReq;
 import com.maan.insurance.model.req.xolPremium.GetPremiumDetailsReq;
@@ -29,6 +44,8 @@ import com.maan.insurance.model.res.facPremium.GetDepartmentIdRes1;
 import com.maan.insurance.model.res.facPremium.SettlementstatusRes;
 import com.maan.insurance.model.res.propPremium.CurrencyListRes;
 import com.maan.insurance.model.res.propPremium.CurrencyListRes1;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes1;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes;
 import com.maan.insurance.model.res.xolPremium.CommonResponse;
 import com.maan.insurance.model.res.xolPremium.CommonSaveRes;
@@ -68,6 +85,8 @@ public class XolPremiumServiceImple implements XolPremiumService{
 	@Autowired
 	private ValidationImple vi;
 	
+	@PersistenceContext
+	private EntityManager em;
 
 	public String getRPPremiumOC(String contractNo, String layerNo,String productId){
 	List<Map<String,Object>>list=new ArrayList<Map<String,Object>>();
@@ -1716,7 +1735,144 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 		return response;
 	}
 
-}
+	@Override
+	public GetRIPremiumListRes getRIPremiumList(GetRIPremiumListReq req) {
+		GetRIPremiumListRes response = new GetRIPremiumListRes();
+		List<GetRIPremiumListRes1> resList = new ArrayList<GetRIPremiumListRes1>();
+		SimpleDateFormat sdf = new  SimpleDateFormat("dd/MM/yyyy");
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<RskPremiumDetailsRi> pm = query.from(RskPremiumDetailsRi.class);
+						
+			//reInsurerName
+			Subquery<String> reInsurerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi = reInsurerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName1 = cb.concat(pi.get("firstName"), " ");
+			reInsurerName.select(cb.concat(firstName1, pi.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis = maxAmend.from(PersonalInfo.class);
+			maxAmend.select(cb.max(pis.get("amendId")));
+			Predicate b1 = cb.equal( pis.get("customerId"), pi.get("customerId"));
+			maxAmend.where(b1);
+			
+			Predicate a1 = cb.equal( pi.get("customerType"), "R");
+			Predicate a2 = cb.equal( pi.get("customerId"), pm.get("reinsurerId"));
+			Predicate a3 = cb.equal( pi.get("branchCode"), pm.get("branchCode"));
+			Predicate a4 = cb.equal( pi.get("amendId"), maxAmend);
+			reInsurerName.where(a1,a2,a3,a4);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+			
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend1 = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = maxAmend1.from(PersonalInfo.class);
+			maxAmend1.select(cb.max(pis1.get("amendId")));
+			Predicate c1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			maxAmend1.where(c1);
+			
+			Predicate d1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate d2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate d3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi1.get("amendId"), maxAmend1);
+			brokerName.where(d1,d2,d3,d4);
+
+			query.multiselect(reInsurerName.alias("REINSURER_NAME"),brokerName.alias("BROKER_NAME"),
+					pm.get("brokerId").alias("BROKER_ID"),pm.get("brokerage").alias("BROKERAGE"),
+					pm.get("signShared").alias("SIGN_SHARED"),pm.get("reinsurerId").alias("REINSURER_ID"),pm.alias("table")); 
+			
+			Predicate n1 = cb.equal(pm.get("contractNo"), req.getContractNo());
+			Predicate n2 = cb.equal(pm.get("transactionNo"), req.getTransactionNo());
+			Predicate n3 = cb.equal(pm.get("branchCode"), req.getBranchCode());
+			query.where(n1,n2,n3);
+			
+			TypedQuery<Tuple> result = em.createQuery(query);
+			List<Tuple> list = result.getResultList();
+			if(list.size()>0) {
+				for(Tuple data1: list) {
+					GetRIPremiumListRes1 res = new GetRIPremiumListRes1();
+					RskPremiumDetailsRi data = (RskPremiumDetailsRi) data1.get("table");	
+					
+					res.setBrokerage(data1.get("BROKERAGE")==null?"":data1.get("BROKERAGE").toString());
+					res.setBrokerId(data1.get("BROKER_ID")==null?"":data1.get("BROKER_ID").toString());
+					res.setBrokerName(data1.get("BROKER_NAME")==null?"":data1.get("BROKER_NAME").toString());
+					res.setReinsurerId(data1.get("REINSURER_ID")==null?"":data1.get("REINSURER_ID").toString());
+					res.setReInsurerName(data1.get("REINSURER_NAME")==null?"":data1.get("REINSURER_NAME").toString());
+					res.setSignShared(data1.get("SIGN_SHARED")==null?"":data1.get("SIGN_SHARED").toString());	
+					
+					res.setContNo(data.getContractNo()==null?"":data.getContractNo().toString());
+					res.setTransactionNo(data.getTransactionNo()==null?"":data.getTransactionNo().toString());
+					res.setTransaction(data.getTransactionMonthYear()==null?"":sdf.format(data.getTransactionMonthYear()));
+					res.setBrokerage(data.getBrokerageAmtOc()==null?"":data.getBrokerageAmtOc().toString());
+					res.setTax(data.getTax()==null?"":data.getTax().toString());
+					res.setMdpremium(data.getMDpremiumOc()==null?"":data.getMDpremiumOc().toString());
+					res.setAdjustmentpremium(data.getAdjustmentPremiumOc()	==null?"":data.getAdjustmentPremiumOc().toString());					
+					res.setRecuirementpremium(data.getRecPremiumOc()==null?"":data.getRecPremiumOc().toString());
+					res.setNetDue(data.getNetdueOc()==null?"":data.getNetdueOc().toString());
+					res.setLayerno(data.getLayerNo()==null?"":data.getLayerNo().toString());
+					res.setEnteringMode(data.getEnteringMode()==null?"":data.getEnteringMode().toString());
+					res.setAccountPeriod(data.getInstalmentNumber()+(data.getAccountPeriodQtr()==null?"":("_"+data.getAccountPeriodQtr())));
+					res.setCurrencyId(data.getCurrencyId()==null?"":data.getCurrencyId().toString());
+					res.setOtherCost(data.getOtherCostOc()==null?"":data.getOtherCostOc().toString());
+					res.setBrokerageusd(data.getBrokerageAmtDc()==null?"":data.getBrokerageAmtDc().toString());
+					res.setTaxusd(data.getTaxAmtDc()==null?"":data.getTaxAmtDc().toString());
+					res.setMdpremiumusd(data.getMDpremiumDc()==null?"":data.getMDpremiumDc().toString());
+					res.setAdjustmentpremiumusd(data.getAdjustmentPremiumDc()==null?"":data.getAdjustmentPremiumDc().toString());
+					res.setRecuirementpremiumusd(data.getRecPremiumDc()==null?"":data.getRecPremiumDc().toString());
+					res.setNetdueusd(data.getNetdueDc()==null?"":data.getNetdueDc().toString());
+					res.setOtherCostUSD(data.getOtherCostDc()==null?"":data.getOtherCostDc().toString());
+					res.setInceptionDate(data.getEntryDate()==null?"":sdf.format(data.getEntryDate()));
+					res.setCedentRef(data.getCedantReference()==null?"":data.getCedantReference().toString());
+					res.setRemarks(data.getRemarks()==null?"":data.getRemarks().toString());
+					res.setTotalCredit(data.getTotalCrOc()==null?"":data.getTotalCrOc().toString());
+					res.setTotalCreditDC(data.getTotalCrDc()==null?"":data.getTotalCrDc().toString());
+					res.setTotalDebit(data.getTotalDrOc()==null?"":data.getTotalDrOc().toString());
+					res.setTotalDebitDC(data.getTotalDrDc()==null?"":data.getTotalDrDc().toString());
+					res.setAmendmentDate(data.getAmendmentDate()==null?"":sdf.format(data.getAmendmentDate()));
+                    res.setWithHoldingTaxOC(data.getWithHoldingTaxOc()==null?"":data.getWithHoldingTaxOc().toString());
+                    res.setWithHoldingTaxDC(data.getWithHoldingTaxDc()==null?"":data.getWithHoldingTaxDc().toString());
+                 //   res.setDueDate(xolView.get("DUE_DATE")==null?"":xolView.get("DUE_DATE").toString());
+                    res.setCreditsign(data.getNetdueOc()==null?"":data.getNetdueOc().toString());
+                    res.setRicession(data.getRiCession()==null?"":data.getRiCession().toString());
+                    res.setPredepartment(data.getPremiumClass()==null?"":data.getPremiumClass().toString());
+                    res.setDepartmentId(data.getSubClass()==null?"":data.getSubClass().toString());
+                    res.setTaxDedectSource(data.getTdsOc()==null?"":data.getTdsOc().toString());
+                    res.setTaxDedectSourceDc(data.getTdsDc()==null?"":data.getTdsDc().toString());
+                    res.setVatPremiumOc(data.getVatPremiumOc()==null?"":data.getVatPremiumOc().toString());
+                    res.setVatPremiumDc(data.getVatPremiumDc()==null?"":data.getVatPremiumDc().toString());
+                    res.setBonus(data.getBonusOc()==null?"":data.getBonusOc().toString());
+                    res.setBonusDc(data.getBonusDc()==null?"":data.getBonusDc().toString());
+    				res.setExchRate(dropDowmImpl.exchRateFormat(data.getExchangeRate()==null?"":data.getExchangeRate().toString()));
+                    res.setGnpiDate(data.getGnpiEndtNo()==null?"":sdf.format(data.getGnpiEndtNo()));
+                    res.setStatementDate(data.getStatementDate()==null?"":sdf.format(data.getStatementDate()));
+                    res.setChooseTransaction(data.getReverselStatus()==null?"":data.getReverselStatus().toString());
+                    res.setTransDropDownVal(data.getReverseTransactionNo()==null?"":data.getReverseTransactionNo().toString());
+
+					resList.add(res);
+				}
+			}		
+			response.setCommonResponse(resList);	
+			response.setMessage("Success");
+			response.setIsError(false);
+		    }catch (Exception e) {
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		    return response;
+	}
+
+	}
+
 	
 
 

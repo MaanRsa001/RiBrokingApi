@@ -76,8 +76,23 @@ public List<ErrorCheck> getMailToListVali(GetMailToListReq req) {
 }
 
 public List<ErrorCheck> getExistingReinsurerListVali(GetExistingReinsurerListReq req) {
-	// TODO Auto-generated method stub
-	return null;
+	List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+//	if (StringUtils.isBlank(req.getBaseProposalNo())) {
+//		list.add(new ErrorCheck("Please Enter BaseProposalNo", "BaseProposalNo", "1"));
+//	}
+//	if (StringUtils.isBlank(req.getBouquetNo())) {
+//		list.add(new ErrorCheck("Please Enter BouquetNo", "BouquetNo", "2"));
+//	}
+	if (StringUtils.isBlank(req.getBranchCode())) {
+		list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "3"));
+	}
+	if (StringUtils.isBlank(req.getEproposalNo())) {
+		list.add(new ErrorCheck("Please Enter EproposalNo", "EproposalNo", "4"));
+	}
+	if (StringUtils.isBlank(req.getProposalNo())) {
+		list.add(new ErrorCheck("Please Enter ProposalNo", "ProposalNo", "5"));
+	}
+	return list;
 }
 
 }

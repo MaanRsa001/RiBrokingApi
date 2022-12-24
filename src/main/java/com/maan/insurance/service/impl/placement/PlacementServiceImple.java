@@ -147,31 +147,109 @@ public class PlacementServiceImple implements PlacementService {
 			
 			
 			Predicate n1 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
-//			if(StringUtils.isNotBlank(bean.getBouquetNo())) {
-//				//GET_EX_REINSURER_BOUQUET_LIST
-//				obj[1]=;
-//				Predicate n2 = cb.equal(pm.get("transactionNo"), bean.getBouquetNo());
-//			}else if(StringUtils.isNotBlank(bean.getBaseProposalNo())) {
-//				//GET_EX_REINSURER_BASE_LIST
-//				obj[1]=bean.getBaseProposalNo();	
-//				Predicate n2 = cb.equal(pm.get("transactionNo"), req.getTransactionNo());
-//			}else {
-//				//GET_EX_REINSURER_PRO_LIST
-//				obj[1]=StringUtils.isBlank(bean.getEproposalNo())?bean.getProposalNo():bean.getEproposalNo();
-//				Predicate n2 = cb.equal(pm.get("transactionNo"), req.getTransactionNo());
-//			}
-//			query.where(n1,n2);
-//			
-//			TypedQuery<Tuple> result = em.createQuery(query);
-//			List<Tuple> list = result.getResultList();
-//		
-//			
+			if(StringUtils.isNotBlank(bean.getBouquetNo())) {
+				//GET_EX_REINSURER_BOUQUET_LIST
+				Predicate n2 = cb.equal(pm.get("bouquetNo"), bean.getBouquetNo());
+				query.where(n1,n2);
+			}else if(StringUtils.isNotBlank(bean.getBaseProposalNo())) {
+				//GET_EX_REINSURER_BASE_LIST
+				Predicate n2 = cb.equal(pm.get("baseProposalNo"), bean.getBaseProposalNo());
+				query.where(n1,n2);
+			}else {
+				//GET_EX_REINSURER_PRO_LIST
+				Predicate n2 = cb.equal(pm.get("proposalNo"), StringUtils.isBlank(bean.getEproposalNo())?bean.getProposalNo():bean.getEproposalNo());
+				query.where(n1,n2);
+			}
+			TypedQuery<Tuple> result = em.createQuery(query);
+			List<Tuple> list = result.getResultList();
+			
+			if(list.size()>0) {
+				for(Tuple data: list) {
+      				CommonResDropDown res = new CommonResDropDown();
+      				res.setCode(data.get("REINSURER_ID")==null?"":data.get("REINSURER_ID").toString());
+      				res.setCodeDescription(data.get("REINSURER_NAME")==null?"": data.get("REINSURER_NAME").toString());;
+      				resList.add(res);
+      			}
+      		}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public GetCommonDropDownRes getExistingBrokerList(GetExistingReinsurerListReq bean) {
+		GetCommonDropDownRes response = new GetCommonDropDownRes();
+		List<CommonResDropDown> resList = new ArrayList<CommonResDropDown>();
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<TtrnRiPlacement> pm = query.from(TtrnRiPlacement.class);
+						
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi = brokerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName1 = cb.concat(pi.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName1, pi.get("lastName")));
+			
+			//maxAmend
+			Subquery<Long> maxAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis = maxAmend.from(PersonalInfo.class);
+			maxAmend.select(cb.max(pis.get("amendId")));
+			Predicate b1 = cb.equal( pis.get("customerId"), pi.get("customerId"));
+			maxAmend.where(b1);
+			
+			Predicate a1 = cb.equal( pi.get("customerType"), "B");
+			Predicate a2 = cb.equal( pi.get("customerId"), pm.get("brokerId"));
+			Predicate a3 = cb.equal( pi.get("branchCode"), pm.get("branchCode"));
+			Predicate a4 = cb.equal( pi.get("amendId"), maxAmend);
+			brokerName.where(a1,a2,a3,a4);
+			
+			query.multiselect(pm.get("brokerId").alias("BROKER_ID"),brokerName.alias("BROKER_NAME")).distinct(true); 
 			
 			
-		}catch (Exception e) {
-			e.printStackTrace();
+			Predicate n1 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			if(StringUtils.isNotBlank(bean.getBouquetNo())) {
+				//GET_EX_BROKER_BOUQUET_LIST
+				Predicate n2 = cb.equal(pm.get("bouquetNo"), bean.getBouquetNo());
+				query.where(n1,n2);
+			}else if(StringUtils.isNotBlank(bean.getBaseProposalNo())) {
+				//GET_EX_BROKER_BASE_LIST
+				Predicate n2 = cb.equal(pm.get("baseProposalNo"), bean.getBaseProposalNo());
+				query.where(n1,n2);
+			}else {
+				//GET_EX_BROKER_PRO_LIST
+				Predicate n2 = cb.equal(pm.get("proposalNo"), StringUtils.isBlank(bean.getEproposalNo())?bean.getProposalNo():bean.getEproposalNo());
+				query.where(n1,n2);
+			}
+			TypedQuery<Tuple> result = em.createQuery(query);
+			List<Tuple> list = result.getResultList();
 			
-		}
+			if(list.size()>0) {
+				for(Tuple data: list) {
+      				CommonResDropDown res = new CommonResDropDown();
+      				res.setCode(data.get("BROKER_ID")==null?"":data.get("BROKER_ID").toString());
+      				res.setCodeDescription(data.get("BROKER_NAME")==null?"": data.get("BROKER_NAME").toString());;
+      				resList.add(res);
+      			}
+      		}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
 		return response;
 	}
 

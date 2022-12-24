@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.maan.insurance.error.CommonValidationException;
 import com.maan.insurance.error.ErrorCheck;
+import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.xolPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.xolPremium.GetAdjPremiumReq;
 import com.maan.insurance.model.req.xolPremium.GetPremiumDetailsReq;
@@ -26,6 +27,7 @@ import com.maan.insurance.model.req.xolPremium.PremiumInsertMethodReq;
 import com.maan.insurance.model.res.facPremium.GetAllocatedListRes;
 import com.maan.insurance.model.res.facPremium.GetDepartmentIdRes;
 import com.maan.insurance.model.res.propPremium.CurrencyListRes;
+import com.maan.insurance.model.res.propPremium.GetRIPremiumListRes;
 import com.maan.insurance.model.res.propPremium.GetRetroContractsRes;
 import com.maan.insurance.model.res.xolPremium.CommonResponse;
 import com.maan.insurance.model.res.xolPremium.ContractDetailsRes;
@@ -171,5 +173,13 @@ public class Xolpremiumcontroller {
 	}
 	 	return xps.getAdjPremium(req); 
 	} 
+	@PostMapping("/getripremiumlist")
+	public GetRIPremiumListRes getRIPremiumList(@RequestBody GetRIPremiumListReq req) throws CommonValidationException {
+		List<ErrorCheck> error = XolPremVali.getRIPremiumListVali(req);
+		if(error!= null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return xps.getRIPremiumList(req);	
+	}
 
 }
