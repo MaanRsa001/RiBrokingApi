@@ -12,4 +12,24 @@ public interface TtrnRiPlacementRepository  extends JpaRepository<TtrnRiPlacemen
 
 	int countByProposalNo(BigDecimal bigDecimal);
 
+
+	int countByBranchCodeAndProposalNoAndStatusNot(String branchCode, BigDecimal bigDecimal, String string);
+
+
+
+	int countByBranchCodeAndBouquetNoAndStatusNot(String branchCode, BigDecimal bigDecimal, String string);
+
+
+	TtrnRiPlacement findDistinctByBouquetNo(BigDecimal bigDecimal);
+
+
+	TtrnRiPlacement findDistinctByBaseProposalNo(BigDecimal bigDecimal);
+
+
+	TtrnRiPlacement findDistinctByProposalNo(BigDecimal bigDecimal);
+
+
+	TtrnRiPlacement findTop1ByBranchCodeAndProposalNoAndReinsurerIdAndBrokerIdOrderByPlacementAmendIdDesc(
+			String branchCode, BigDecimal bigDecimal, String reinsurerId, String brokerId);
+
 }

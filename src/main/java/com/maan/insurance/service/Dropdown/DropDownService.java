@@ -204,7 +204,7 @@ public interface DropDownService {
 
 	GetNotPlacedProposalListRes getNotPlacedProposalList(GetPlacedProposalListReq req);
 
-	GetBaseLayerExistingListRes getBaseLayerExistingList(String branchCode, String baseProposalNo);
+	GetBouquetExistingListRes getBaseLayerExistingList(String branchCode, String baseProposalNo);
 
 	GetBouquetCedentBrokerInfoRes getBouquetCedentBrokerInfo(String bouquetNo);
 

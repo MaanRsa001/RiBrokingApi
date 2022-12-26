@@ -433,7 +433,8 @@ public class RskPremiumDetailsRi implements Serializable {
 	    @Column(name="CONTRACT_AMEND_ID")
 	    private BigDecimal contractAmendId ;
 	    
-	  
+	    @Column(name="TRANS_STATUS")
+	    private String     transStatus ;
 	    
 	    @Column(name="SIGN_SHARED")
 	    private BigDecimal signShared ;

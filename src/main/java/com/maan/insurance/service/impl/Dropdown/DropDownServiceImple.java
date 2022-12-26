@@ -4144,15 +4144,15 @@ public GetCommonValueRes getAllocationDisableStatus(String contractNo, String la
 	}
 
 	@Override
-	public GetBaseLayerExistingListRes getBaseLayerExistingList(String branchCode, String baseProposalNo) {
-		GetBaseLayerExistingListRes response = new GetBaseLayerExistingListRes();
-		List<GetBaseLayerExistingListRes1> resList = new ArrayList<GetBaseLayerExistingListRes1>();
+	public GetBouquetExistingListRes getBaseLayerExistingList(String branchCode, String baseProposalNo) {
+		GetBouquetExistingListRes response = new GetBouquetExistingListRes();
+		List<GetBouquetExistingListRes1> resList = new ArrayList<GetBouquetExistingListRes1>();
 		List<Map<String,Object>> list=new ArrayList<Map<String,Object>>();
 		try{
 			list= queryImpl.selectList("GET_EXISTING_BASELAYER",new String[]{branchCode,baseProposalNo});
 			if(list.size()>0) {
 				for(Map<String,Object> data: list) {
-					GetBaseLayerExistingListRes1 res = new GetBaseLayerExistingListRes1();
+					GetBouquetExistingListRes1 res = new GetBouquetExistingListRes1();
 					res.setInsDate(data.get("INS_DATE")==null?"":data.get("INS_DATE").toString());  
 					res.setExpDate(data.get("EXP_DATE")==null?"":data.get("EXP_DATE").toString());  
 					res.setCompanyName(data.get("COMPANY_NAME")==null?"":data.get("COMPANY_NAME").toString());  

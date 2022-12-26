@@ -47,6 +47,7 @@ import com.maan.insurance.model.res.propPremium.SubmitPremiumReservedRes;
 import com.maan.insurance.model.res.propPremium.ViewPremiumDetailsRIReq;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes;
 import com.maan.insurance.model.res.propPremium.premiumUpdateMethodRes;
+import com.maan.insurance.model.res.retro.CommonResponse;
 
 @Service
 public interface PropPremiumService {
@@ -112,5 +113,7 @@ public interface PropPremiumService {
 	GetVatInfoRes getVatInfo(GetVatInfoReq req);
 
 	ViewRIPremiumListRes viewRIPremiumList(GetRIPremiumListReq req);
+
+	CommonResponse updateRIStatus(GetRIPremiumListReq req);
 
 }

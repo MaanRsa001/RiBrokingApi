@@ -688,7 +688,7 @@ public class DropDownController {
 		return dropDownservice.getNotPlacedProposalList(req);
 	} 
 	@GetMapping("/getBaseLayerExistingList/{branchCode}/{baseProposalNo}")
-	public GetBaseLayerExistingListRes getBaseLayerExistingList(@PathVariable("branchCode") String branchCode,@PathVariable("baseProposalNo") String baseProposalNo)throws CommonValidationException {
+	public GetBouquetExistingListRes getBaseLayerExistingList(@PathVariable("branchCode") String branchCode,@PathVariable("baseProposalNo") String baseProposalNo)throws CommonValidationException {
 		return dropDownservice.getBaseLayerExistingList(branchCode,baseProposalNo);
 	}  
 	@GetMapping("/getBouquetCedentBrokerInfo/{bouquetNo}")

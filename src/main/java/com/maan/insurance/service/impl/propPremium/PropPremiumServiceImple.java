@@ -124,6 +124,7 @@ import com.maan.insurance.model.res.propPremium.ViewPremiumDetailsRIReq;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes1;
 import com.maan.insurance.model.res.proportionality.CommonSaveRes;
+import com.maan.insurance.model.res.retro.CommonResponse;
 import com.maan.insurance.service.impl.QueryImplemention;
 import com.maan.insurance.service.impl.Dropdown.DropDownServiceImple;
 import com.maan.insurance.service.propPremium.PropPremiumService;
@@ -3644,6 +3645,28 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				}
 			}		
 			response.setCommonResponse(resList);	
+			response.setMessage("Success");
+			response.setIsError(false);
+		    }catch (Exception e) {
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		    return response;
+	}
+	@Override
+	public CommonResponse updateRIStatus(GetRIPremiumListReq req) {
+		CommonResponse response = new CommonResponse();
+		try {
+			List<RskPremiumDetailsRi> list =	pdRIRepo.findByContractNoAndTransactionNoAndBranchCode
+					(new BigDecimal(req.getContractNo()),new BigDecimal(req.getTransactionNo()),req.getBranchCode());
+			if(list.size()>0) {
+				for(RskPremiumDetailsRi data: list) {
+					data.setTransStatus("Approved");
+					pdRIRepo.saveAndFlush(data);
+				}
+			}			
 			response.setMessage("Success");
 			response.setIsError(false);
 		    }catch (Exception e) {

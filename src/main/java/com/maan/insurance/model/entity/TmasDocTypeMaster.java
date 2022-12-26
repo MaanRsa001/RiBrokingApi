@@ -47,7 +47,7 @@ import javax.persistence.*;
 @Table(name="TMAS_DOC_TYPE_MASTER")
 
 
-public class TmasDocTypeMaster implements Serializable {
+public class TmasDocTypeMaster implements Serializable { 
  
 private static final long serialVersionUID = 1L;
  

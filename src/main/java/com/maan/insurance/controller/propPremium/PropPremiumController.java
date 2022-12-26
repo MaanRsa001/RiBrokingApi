@@ -67,6 +67,7 @@ import com.maan.insurance.model.res.propPremium.premiumUpdateMethodRes;
 import com.maan.insurance.model.res.propPremium.ViewPremiumDetailsRIReq;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes;
 import com.maan.insurance.model.res.proportionality.CommonSaveRes;
+import com.maan.insurance.model.res.retro.CommonResponse;
 import com.maan.insurance.service.propPremium.PropPremiumService;
 import com.maan.insurance.validation.propPremium.PropPremiumValidation;
 
@@ -288,5 +289,13 @@ public class PropPremiumController {
 			throw new CommonValidationException("error",error);
 		}
 		return premiumService.viewRIPremiumList(req);	
+	} 
+	@PostMapping("/Proppremium/updateRIStatus")
+	public CommonResponse updateRIStatus(@RequestBody GetRIPremiumListReq req) throws CommonValidationException {
+		List<ErrorCheck> error = premiumVali.getRIPremiumListVali(req);
+		if(error!= null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return premiumService.updateRIStatus(req);	
 	}
 }
