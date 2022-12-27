@@ -49,5 +49,9 @@ public class SavePlacingReq {
 	@JsonProperty("StatusNo")
 	private String statusNo; 
 	@JsonProperty("UserId")
-	private String userId; 
+	private String userId;  
+	@JsonProperty("NotplacedProposal")
+	private String notplacedProposal; 
+	@JsonProperty("PlacedProposal")
+	private String placedProposal;  
 }

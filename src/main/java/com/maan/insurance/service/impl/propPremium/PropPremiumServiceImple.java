@@ -1221,7 +1221,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 	{
 		
 		String[] args=null;
-			args=new String[94];
+			args=new String[97];
 			double premiumsurpInsert=0.0;
 			double premiumInsert=0.0;
 		    args[0]=req.getContNo();
@@ -1378,7 +1378,9 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			args[54]=dropDownImple.GetDesginationCountry(args[33], req.getExchRate());
 			args[65]=StringUtils.isEmpty(req.getOsClaimsLossUpdateOC())?"0":getModeOfTransaction(req.getOsClaimsLossUpdateOC(),req);
 			args[66]=dropDownImple.GetDesginationCountry(args[65], req.getExchRate());
-
+			args[94] = req.getM1oc();
+			args[95] = req.getM2oc();
+			args[96] = req.getM2oc();
 			
 			req.setRequestNo(args[1]);
 		
@@ -2818,6 +2820,9 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				entity.setNetdueDc(new BigDecimal(dropDownImple.GetDesginationCountry(entity.getNetdueOc().toString(), beanObj.getExchRate())));
 				 entity.setMovementYn(null);
 				 entity.setEntryDate(new Date());
+				 entity.setM1Oc(new BigDecimal(beanObj.getM1oc()));	
+				 entity.setM2Oc(new BigDecimal(beanObj.getM2oc()));	
+				 entity.setM3Oc(new BigDecimal(beanObj.getM3oc()));	
 				 pdTempRepo.save(entity);
 			} 
 			}else{
@@ -2977,6 +2982,9 @@ public class PropPremiumServiceImple implements PropPremiumService {
 					entity.setNetdueDc(new BigDecimal(dropDownImple.GetDesginationCountry(entity.getNetdueOc().toString(), beanObj.getExchRate())));
 					 entity.setMovementYn(null);
 					 entity.setEntryDate(new Date());
+					 entity.setM1Oc(new BigDecimal(beanObj.getM1oc()));	
+					 entity.setM2Oc(new BigDecimal(beanObj.getM2oc()));	
+					 entity.setM3Oc(new BigDecimal(beanObj.getM3oc()));	
 					 pdRepo.save(entity);
 		}
 		}
@@ -3304,7 +3312,10 @@ public class PropPremiumServiceImple implements PropPremiumService {
 //							res.setSectionType(editpremium.get("2")==null?"":editpremium.get("TRANS_DATE").toString());
 							res.setAccountPeriodDate(editpremium.get("ACCOUNTING_PERIOD_DATE")==null?"":editpremium.get("ACCOUNTING_PERIOD_DATE").toString());
 							res.setPredepartment(editpremium.get("PREMIUM_CLASS")==null?"":editpremium.get("PREMIUM_CLASS").toString());
-						}
+							res.setM1oc(editpremium.get("M1_OC")==null?"":editpremium.get("M1_OC").toString());
+							res.setM2oc(editpremium.get("M2_OC")==null?"":editpremium.get("M2_OC").toString());
+							res.setM3oc(editpremium.get("M3_OC")==null?"":editpremium.get("M3_OC").toString());		
+							}
 					if(list!=null && list.size()>0)
 						saveFlag = true;
 					response.setCommonResponse(res);

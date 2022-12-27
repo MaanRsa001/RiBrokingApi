@@ -194,5 +194,12 @@ public class PremiumEditRes1 {
 	
 	@JsonProperty("Predepartment")
 	private String predepartment;
+	
+	@JsonProperty("M1OC")
+	private String m1oc;
+	@JsonProperty("M2OC")
+	private String m2oc;
+	@JsonProperty("M3OC")
+	private String m3oc;
 
 }

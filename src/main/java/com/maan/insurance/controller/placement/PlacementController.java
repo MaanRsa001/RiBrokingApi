@@ -13,18 +13,22 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.maan.insurance.error.CommonValidationException;
 import com.maan.insurance.error.ErrorCheck;
+import com.maan.insurance.model.req.placement.EditPlacingDetailsReq;
 import com.maan.insurance.model.req.placement.GetExistingAttachListReq;
 import com.maan.insurance.model.req.placement.GetExistingReinsurerListReq;
 import com.maan.insurance.model.req.placement.GetMailToListReq;
 import com.maan.insurance.model.req.placement.GetPlacementInfoListReq;
+import com.maan.insurance.model.req.placement.GetPlacingInfoReq;
 import com.maan.insurance.model.req.placement.GetReinsurerInfoReq;
 import com.maan.insurance.model.req.placement.SavePlacingReq;
 import com.maan.insurance.model.req.retro.FirstInsertReq;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.placement.CommonSaveResList;
+import com.maan.insurance.model.res.placement.EditPlacingDetailsRes;
 import com.maan.insurance.model.res.placement.GetExistingAttachListRes;
 import com.maan.insurance.model.res.placement.GetPlacementInfoListRes;
 import com.maan.insurance.model.res.placement.GetPlacementNoRes;
+import com.maan.insurance.model.res.placement.GetPlacingInfoRes;
 import com.maan.insurance.model.res.placement.GetReinsurerInfoRes;
 import com.maan.insurance.model.res.placement.InsertPlacingRes;
 import com.maan.insurance.model.res.placement.ProposalInfoRes;
@@ -121,6 +125,21 @@ Gson gson = new Gson();
 			 throw new CommonValidationException("error",error);
 	}
 		return serv.insertPlacing(req);
-}
-
+	} 	
+	@PostMapping("/getPlacingInfo")
+	public GetPlacingInfoRes getPlacingInfo(@RequestBody GetPlacingInfoReq req) throws CommonValidationException {
+		List<ErrorCheck> error= val.getPlacingInfoVali(req);
+		if(error!=null && error.size()>0) {
+			 throw new CommonValidationException("error",error);
+	}
+		return serv.getPlacingInfo(req);
+	} 
+	@PostMapping("/editPlacingDetails")
+	public EditPlacingDetailsRes editPlacingDetails(@RequestBody EditPlacingDetailsReq req) throws CommonValidationException {
+		List<ErrorCheck> error= val.editPlacingDetailsVali(req);
+		if(error!=null && error.size()>0) {
+			 throw new CommonValidationException("error",error);
+	}
+		return serv.editPlacingDetails(req);
+	}
 }

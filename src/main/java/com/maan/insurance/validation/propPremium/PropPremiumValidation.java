@@ -79,16 +79,16 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> getPremiumedListVali(GetPremiumedListReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getBranchCode())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
 		if(StringUtils.isBlank(req.getContNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "02"));
 			}
 		if(StringUtils.isBlank(req.getSectionNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "03"));
+			list.add(new ErrorCheck("Please Enter DepartmentId","DepartmentId", "03"));
 			}
 		if(StringUtils.isBlank(req.getType())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter Type"),"Type", "04"));
+			list.add(new ErrorCheck("Please Enter Type","Type", "04"));
 			}
 		return list;
 	}
@@ -96,10 +96,10 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> getPreListVali(GetPreListReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getDepartmentId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "01"));
+			list.add(new ErrorCheck("Please Enter DepartmentId","DepartmentId", "01"));
 			}
 		if(StringUtils.isBlank(req.getContNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "02"));
 			}
 		return list;
 	}
@@ -107,16 +107,16 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> getConstantPeriodDropDownVali(GetConstantPeriodDropDownReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getCategoryId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter CategoryId"),"CategoryId", "01"));
+			list.add(new ErrorCheck("Please Enter CategoryId","CategoryId", "01"));
 			}
 		if(StringUtils.isBlank(req.getContractNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "02"));
 			}
 		if(StringUtils.isBlank(req.getSectionNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter SectionNo"),"DepartmentId", "03"));
+			list.add(new ErrorCheck("Please Enter SectionNo","DepartmentId", "03"));
 			}
 		if(StringUtils.isBlank(req.getProposalNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "04"));
+			list.add(new ErrorCheck("Please Enter ProposalNo","ProposalNo", "04"));
 			}
 		return list;
 	}
@@ -126,19 +126,19 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> contractDetailsVali(ContractDetailsReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getBranchCode())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
 		if(StringUtils.isBlank(req.getContNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "02"));
 			}
 		if(StringUtils.isBlank(req.getSectionNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter SectionNo"),"SectionNo", "03"));
+			list.add(new ErrorCheck("Please Enter SectionNo","SectionNo", "03"));
 			}
 		if(StringUtils.isBlank(req.getProposalNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "04"));
+			list.add(new ErrorCheck("Please Enter ProposalNo","ProposalNo", "04"));
 			}
 		if(StringUtils.isBlank(req.getProductId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ProductId"),"ProductId", "05"));
+			list.add(new ErrorCheck("Please Enter ProductId","ProductId", "05"));
 			}
 		return list;
 	}
@@ -716,23 +716,23 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> getPremiumDetailsVali(GetPremiumDetailsReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getBranchCode())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
 	
 		if(StringUtils.isBlank(req.getContractNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "03"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "03"));
 			}
 //		if(StringUtils.isBlank(req.getRequestNo())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter RequestNo"),"RequestNo", "04"));
+//			list.add(new ErrorCheck("Please Enter RequestNo"),"RequestNo", "04"));
 //			}
 		if(StringUtils.isBlank(req.getProductId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ProductId"),"ProductId", "05"));
+			list.add(new ErrorCheck("Please Enter ProductId","ProductId", "05"));
 			}
 		if(StringUtils.isBlank(req.getTableType())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter TableType"),"TableType", "06"));
+			list.add(new ErrorCheck("Please Enter TableType","TableType", "06"));
 			}
 //		if(StringUtils.isBlank(req.getTransactionNo())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter TransactionNo"),"TransactionNo", "07"));
+//			list.add(new ErrorCheck("Please Enter TransactionNo"),"TransactionNo", "07"));
 //			}
 		return list;
 	}
@@ -745,25 +745,25 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> getPremiumReservedVali(GetPremiumReservedReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getBranchCode())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
 			if(StringUtils.isBlank(req.getChkbox())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter Chkbox"),"Chkbox", "02"));
+			list.add(new ErrorCheck("Please Enter Chkbox","Chkbox", "02"));
 			}
 		if(StringUtils.isBlank(req.getContNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContNo"),"ContNo", "03"));
+			list.add(new ErrorCheck("Please Enter ContNo","ContNo", "03"));
 			}
 		if(StringUtils.isBlank(req.getCurrencyId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter CurrencyId"),"CurrencyId", "04"));
+			list.add(new ErrorCheck("Please Enter CurrencyId","CurrencyId", "04"));
 			}
 		if(StringUtils.isBlank(req.getDepartmentId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "05"));
+			list.add(new ErrorCheck("Please Enter DepartmentId","DepartmentId", "05"));
 			}
 		if(StringUtils.isBlank(req.getTransaction())) {
-				list.add(new ErrorCheck(prop.getProperty("Please Enter Transaction"),"Transaction", "06"));
+				list.add(new ErrorCheck("Please Enter Transaction","Transaction", "06"));
 			}
 			if (StringUtils.isBlank(req.getType())) {
-				list.add(new ErrorCheck(prop.getProperty("Please Enter Type"), "Type", "07"));
+				list.add(new ErrorCheck("Please Enter Type", "Type", "07"));
 			}
 			
 		return list;
@@ -772,57 +772,57 @@ public class PropPremiumValidation {
 //	public List<ErrorCheck> getCashLossCreditVali(InsertPremiumReq req) {
 //		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 //		if(StringUtils.isBlank(req.getBranchCode())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+//			list.add(new ErrorCheck("Please Enter BranchCode"),"BranchCode", "01"));
 //			}
 //			if(StringUtils.isBlank(req.getChkbox())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter Chkbox"),"Chkbox", "02"));
+//			list.add(new ErrorCheck("Please Enter Chkbox"),"Chkbox", "02"));
 //			}
 //		if(StringUtils.isBlank(req.getContNo())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter ContNo"),"ContNo", "03"));
+//			list.add(new ErrorCheck("Please Enter ContNo"),"ContNo", "03"));
 //			}
 //		if(StringUtils.isBlank(req.getCurrencyId())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter CurrencyId"),"CurrencyId", "04"));
+//			list.add(new ErrorCheck("Please Enter CurrencyId"),"CurrencyId", "04"));
 //			}
 //		if(StringUtils.isBlank(req.getDepartmentId())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "05"));
+//			list.add(new ErrorCheck("Please Enter DepartmentId"),"DepartmentId", "05"));
 //			}
 //		if(StringUtils.isBlank(req.getBrokerage())) {
-//				list.add(new ErrorCheck(prop.getProperty("Please Enter Brokerage"),"Brokerage", "06"));
+//				list.add(new ErrorCheck("Please Enter Brokerage"),"Brokerage", "06"));
 //			}
 //			if (StringUtils.isBlank(req.getClaimPayNo())) {
-//				list.add(new ErrorCheck(prop.getProperty("Please Enter ClaimPayNo"), "ClaimPayNo", "07"));
+//				list.add(new ErrorCheck("Please Enter ClaimPayNo"), "ClaimPayNo", "07"));
 //			}
 //			if(StringUtils.isBlank(req.getCLCsettlementRatelist())) {
-//				list.add(new ErrorCheck(prop.getProperty("Please Enter CLCsettlementRatelist"),"CLCsettlementRatelist", "01"));
+//				list.add(new ErrorCheck("Please Enter CLCsettlementRatelist"),"CLCsettlementRatelist", "01"));
 //				}
 //				if(StringUtils.isBlank(req.getCreditAmountCLDlist())) {
-//				list.add(new ErrorCheck(prop.getProperty("Please Enter CreditAmountCLDlist"),"CreditAmountCLDlist", "02"));
+//				list.add(new ErrorCheck("Please Enter CreditAmountCLDlist"),"CreditAmountCLDlist", "02"));
 //				}
 //			if(StringUtils.isBlank(req.getCreditAmountCLClist())) {
-//				list.add(new ErrorCheck(prop.getProperty("Please Enter CreditAmountCLClist"),"CreditAmountCLClist", "03"));
+//				list.add(new ErrorCheck("Please Enter CreditAmountCLClist"),"CreditAmountCLClist", "03"));
 //				}
 //			if(StringUtils.isBlank(req.getCreditAmountCLDlist())) {
-//				list.add(new ErrorCheck(prop.getProperty("Please Enter CreditAmountCLDlist"),"CreditAmountCLDlist", "04"));
+//				list.add(new ErrorCheck("Please Enter CreditAmountCLDlist"),"CreditAmountCLDlist", "04"));
 //				}
 //		
 //			if(StringUtils.isBlank(req.getMainclaimPaymentNos())) {
-//					list.add(new ErrorCheck(prop.getProperty("Please Enter MainclaimPaymentNos"),"MainclaimPaymentNos", "06"));
+//					list.add(new ErrorCheck("Please Enter MainclaimPaymentNos"),"MainclaimPaymentNos", "06"));
 //				}
 //				if (StringUtils.isBlank(req.getMainCLCsettlementRatelist())) {
-//					list.add(new ErrorCheck(prop.getProperty("Please Enter MainCLCsettlementRatelist"), "MainCLCsettlementRatelist", "07"));
+//					list.add(new ErrorCheck("Please Enter MainCLCsettlementRatelist"), "MainCLCsettlementRatelist", "07"));
 //				}
 //				
 //				if(StringUtils.isBlank(req.getMaincreditAmountCLClist())) {
-//					list.add(new ErrorCheck(prop.getProperty("Please Enter MaincreditAmountCLClist"),"MaincreditAmountCLClist", "01"));
+//					list.add(new ErrorCheck("Please Enter MaincreditAmountCLClist"),"MaincreditAmountCLClist", "01"));
 //					}
 //					if(StringUtils.isBlank(req.getMaincreditAmountCLDlist())) {
-//					list.add(new ErrorCheck(prop.getProperty("Please Enter MaincreditAmountCLDlist"),"MaincreditAmountCLDlist", "02"));
+//					list.add(new ErrorCheck("Please Enter MaincreditAmountCLDlist"),"MaincreditAmountCLDlist", "02"));
 //					}
 //				if(StringUtils.isBlank(req.getMode())) {
-//					list.add(new ErrorCheck(prop.getProperty("Please Enter Mode"),"Mode", "03"));
+//					list.add(new ErrorCheck("Please Enter Mode"),"Mode", "03"));
 //					}
 //				if(StringUtils.isBlank(req.getTax())) {
-//					list.add(new ErrorCheck(prop.getProperty("Please Enter Tax"),"Tax", "04"));
+//					list.add(new ErrorCheck("Please Enter Tax"),"Tax", "04"));
 //					}
 //			
 //		return list;
@@ -882,31 +882,31 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> premiumEditVali(PremiumEditReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getBranchCode())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
 	
 		if(StringUtils.isBlank(req.getContNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "03"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "03"));
 			}
 		if(StringUtils.isBlank(req.getCountryId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter CountryId"),"CountryId", "01"));
+			list.add(new ErrorCheck("Please Enter CountryId","CountryId", "01"));
 			}
 	
 		if(StringUtils.isBlank(req.getProductId())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "03"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "03"));
 			}
 		if(StringUtils.isBlank(req.getRequestNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter BranchCode"),"BranchCode", "01"));
+			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
 	
 		if(StringUtils.isBlank(req.getTableType())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "03"));
+			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "03"));
 			}
 //		if(StringUtils.isBlank(req.getTransDropDownVal())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "03"));
+//			list.add(new ErrorCheck("Please Enter ContractNo"),"ContractNo", "03"));
 //			}
 //		if(StringUtils.isBlank(req.getTransactionNo())) {
-//			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "03"));
+//			list.add(new ErrorCheck("Please Enter ContractNo"),"ContractNo", "03"));
 //			}
 		return list;
 	}
@@ -914,7 +914,7 @@ public class PropPremiumValidation {
 	public List<ErrorCheck> viewPremiumDetailsRIVali(ViewPremiumDetailsRIReq req) {
 		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
 		if(StringUtils.isBlank(req.getTransactionNo())) {
-			list.add(new ErrorCheck(prop.getProperty("Please Enter TransactionNo"),"TransactionNo", "01"));
+			list.add(new ErrorCheck("Please Enter TransactionNo","TransactionNo", "01"));
 			}
 		return list;
 	}
@@ -924,7 +924,6 @@ public class PropPremiumValidation {
 		if(StringUtils.isBlank(req.getBranchCode())) {
 			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
 			}
-	
 		if(StringUtils.isBlank(req.getPremiumAmount())) {
 			list.add(new ErrorCheck("Please Enter PremiumAmount","PremiumAmount", "03"));
 			}

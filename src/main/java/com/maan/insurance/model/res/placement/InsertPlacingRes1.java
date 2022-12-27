@@ -9,5 +9,12 @@ import lombok.Data;
 
 @Data
 public class InsertPlacingRes1 {
+	@JsonProperty("PlacementamendId")
+	private String placementamendId;  
 	
+	@JsonProperty("ReinsurerId")
+	private String reinsurerId; 
+	
+	@JsonProperty("BrokerId")
+	private String brokerId; 
 }

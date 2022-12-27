@@ -2,17 +2,21 @@ package com.maan.insurance.service.placement;
 
 import org.springframework.stereotype.Service;
 
+import com.maan.insurance.model.req.placement.EditPlacingDetailsReq;
 import com.maan.insurance.model.req.placement.GetExistingAttachListReq;
 import com.maan.insurance.model.req.placement.GetExistingReinsurerListReq;
 import com.maan.insurance.model.req.placement.GetMailToListReq;
 import com.maan.insurance.model.req.placement.GetPlacementInfoListReq;
+import com.maan.insurance.model.req.placement.GetPlacingInfoReq;
 import com.maan.insurance.model.req.placement.GetReinsurerInfoReq;
 import com.maan.insurance.model.req.placement.SavePlacingReq;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.placement.CommonSaveResList;
+import com.maan.insurance.model.res.placement.EditPlacingDetailsRes;
 import com.maan.insurance.model.res.placement.GetExistingAttachListRes;
 import com.maan.insurance.model.res.placement.GetPlacementInfoListRes;
 import com.maan.insurance.model.res.placement.GetPlacementNoRes;
+import com.maan.insurance.model.res.placement.GetPlacingInfoRes;
 import com.maan.insurance.model.res.placement.GetReinsurerInfoRes;
 import com.maan.insurance.model.res.placement.InsertPlacingRes;
 import com.maan.insurance.model.res.placement.ProposalInfoRes;
@@ -40,5 +44,9 @@ public interface PlacementService {
 	GetPlacementNoRes getPlacementNo(SavePlacingReq req);
 
 	InsertPlacingRes insertPlacing(SavePlacingReq req);
+
+	GetPlacingInfoRes getPlacingInfo(GetPlacingInfoReq req);
+
+	EditPlacingDetailsRes editPlacingDetails(EditPlacingDetailsReq req);
 
 }

@@ -32,23 +32,22 @@ import lombok.ToString;
 @DynamicUpdate
 @Builder
 
-@Table(name="RSK_PREMIUM_DETAILS_TEMP")
+@Table(name = "RSK_PREMIUM_DETAILS_TEMP")
 public class RskPremiumDetailsTemp {
 
 	@Id
 	@Column(name = "REQUEST_NO")
 	private BigDecimal requestNo;
-	
+
 	@Column(name = "CONTRACT_NO")
 	private BigDecimal contractNo;
 
-	
 	@Column(name = "TRANSACTION_NO")
 	private BigDecimal transactionNo;
 
-	  @Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "TRANSACTION_MONTH_YEAR")
-	private Date  transactionMonthYear;
+	private Date transactionMonthYear;
 
 	@Column(name = "ACCOUNT_PERIOD_QTR")
 	private String accountPeriodQtr;
@@ -79,7 +78,7 @@ public class RskPremiumDetailsTemp {
 
 	@Column(name = "TAX_AMT_DC")
 	private BigDecimal taxAmtDc;
-	  @Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "ENTRY_DATE_TIME")
 	private Date entryDateTime;
 
@@ -132,7 +131,7 @@ public class RskPremiumDetailsTemp {
 	private BigDecimal lossReserveReleasedOc;
 
 	@Column(name = "LOSS_RESERVE_RELEASED_DC")
-	private BigDecimal lossReserveReleasedDc	;
+	private BigDecimal lossReserveReleasedDc;
 
 	@Column(name = "PREMIUMRESERVE_QUOTASHARE_OC")
 	private BigDecimal premiumreserveQuotashareOc;
@@ -150,7 +149,7 @@ public class RskPremiumDetailsTemp {
 	private BigDecimal lossReserveretainedOc;
 
 	@Column(name = "LOSS_RESERVERETAINED_DC")
-	private BigDecimal lossReserveretainedDc	;
+	private BigDecimal lossReserveretainedDc;
 
 	@Column(name = "PROFIT_COMMISSION_OC")
 	private BigDecimal profitCommissionOc;
@@ -181,109 +180,109 @@ public class RskPremiumDetailsTemp {
 
 	@Column(name = "M_DPREMIUM_OC")
 	private BigDecimal mDpremiumOc;
-	
+
 	@Column(name = "M_DPREMIUM_DC")
 	private BigDecimal mDpremiumDc;
-	
+
 	@Column(name = "ADJUSTMENT_PREMIUM_OC")
 	private BigDecimal adjustmentPremiumOc;
-	
+
 	@Column(name = "ADJUSTMENT_PREMIUM_DC")
 	private BigDecimal adjustmentPremiumDc;
-	
+
 	@Column(name = "REC_PREMIUM_OC")
 	private BigDecimal recPremiumOc;
-	
+
 	@Column(name = "REC_PREMIUM_DC")
 	private BigDecimal recPremiumDc;
-	
+
 	@Column(name = "ENTERING_MODE")
 	private String enteringMode;
-	
+
 	@Column(name = "RECEIPT_NO")
 	private BigDecimal receiptNo;
-	
+
 	@Column(name = "CLAIMS_PAID_OC")
 	private BigDecimal claimsPaidOc;
-	
+
 	@Column(name = "CLAIMS_PAID_DC")
 	private BigDecimal claimsPaidDc;
-	
+
 	@Column(name = "SETTLEMENT_STATUS")
 	private String settlementStatus;
-	
+
 	@Column(name = "PAYMENT_NO")
 	private BigDecimal paymentNo;
-	
+
 	@Column(name = "INSTALMENT_NUMBER")
 	private String instalmentNumber;
-	
+
 	@Column(name = "PREMIUM_RESERVE_RELEASE_OC")
 	private BigDecimal premiumReserveReleaseOc;
-	
+
 	@Column(name = "PREMIUM_RESERVE_RELEASE_DC")
 	private BigDecimal premiumReserveReleaseDc;
-	
+
 	@Column(name = "PREMIUM_RESERVE_RETAINED_OC")
 	private BigDecimal premiumReserveRetainedOc;
-	
+
 	@Column(name = "PREMIUM_RESERVE_RETAINED_DC")
 	private BigDecimal premiumReserveRetainedDc;
-	
+
 	@Column(name = "INTEREST_OC")
 	private BigDecimal interestOc;
-	
+
 	@Column(name = "INTEREST_DC")
 	private BigDecimal interestDc;
-	
+
 	@Column(name = "UW_MONTH")
 	private BigDecimal uwMonth;
-	
+
 	@Column(name = "UW_YEAR")
 	private BigDecimal uwYear;
-	
+
 	@Column(name = "XL_COST_OC")
 	private BigDecimal xlCostOc;
-	
+
 	@Column(name = "XL_COST_DC")
 	private BigDecimal xlCostDc;
-	
+
 	@Column(name = "CLAIM_PORTFOLIO_OUT_OC")
 	private BigDecimal claimPortfolioOutOc;
-	
+
 	@Column(name = "CLAIM_PORTFOLIO_OUT_DC")
 	private BigDecimal claimPortfolioOutDc;
-	
+
 	@Column(name = "PREMIUM_RESERVE_REALSED_OC")
 	private BigDecimal premiumReserveRealsedOc;
-	
+
 	@Column(name = "PREMIUM_RESERVE_REALSED_DC")
 	private BigDecimal premiumReserveRealsedDc;
-	
+
 	@Column(name = "OTHER_COST_OC")
 	private BigDecimal otherCostOc;
-	
+
 	@Column(name = "OTHER_COST_DC")
 	private BigDecimal otherCostDc;
-	
+
 	@Column(name = "ALLOCATED_TILL_DATE")
 	private BigDecimal allocatedTillDate;
-	
+
 	@Column(name = "CEDANT_REFERENCE")
 	private String cedantReference;
-	
+
 	@Column(name = "ACC_PREMIUM")
 	private String accPremium;
-	
+
 	@Column(name = "CHECKYN")
 	private String checkyn;
-	
+
 	@Column(name = "TOTAL_CR_OC")
 	private BigDecimal totalCrOc;
-	
+
 	@Column(name = "TOTAL_CR_DC")
 	private BigDecimal totalCrDc;
-	
+
 	@Column(name = "TOTAL_DR_OC")
 	private BigDecimal totalDrOc;
 
@@ -298,7 +297,7 @@ public class RskPremiumDetailsTemp {
 
 	@Column(name = "PROPOSAL_NO")
 	private BigDecimal proposalNo;
-	  @Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "ENTRY_DATE")
 	private Date entryDate;
 
@@ -317,7 +316,7 @@ public class RskPremiumDetailsTemp {
 	@Column(name = "MOVMENT_TRANID")
 	private BigDecimal movmentTranid;
 
-	  @Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "AMENDMENT_DATE")
 	private Date amendmentDate;
 
@@ -381,11 +380,11 @@ public class RskPremiumDetailsTemp {
 	@Column(name = "GNPI_ENDT_NO")
 	private String gnpiEndtNo;
 
-	  @Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "ACCOUNTING_PERIOD_DATE")
 	private Date accountingPeriodDate;
 
-	  @Temporal(TemporalType.TIMESTAMP)
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "STATEMENT_DATE")
 	private Date statementDate;
 
@@ -402,26 +401,34 @@ public class RskPremiumDetailsTemp {
 	private String sectionName;
 
 	@Column(name = "PRODUCT_ID")
-	private BigDecimal  productId;
+	private BigDecimal productId;
 
 	@Column(name = "REVERSE_TRANSACTION_NO")
 	private BigDecimal reverseTransactionNo;
 
 	@Column(name = "REVERSEL_STATUS")
 	private String reverselStatus;
-	
-	
+
 	@Column(name = "TRANS_STATUS")
 	private String transStatus;
-	
+
 	@Column(name = "TRANS_TYPE")
 	private String transType;
-	
+
 	@Column(name = "REVIEWER_ID")
 	private String reviewerId;
-	
-	  @Temporal(TemporalType.TIMESTAMP)
+
+	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "REVIEW_DATE")
 	private Date reviewDate;
+
+	@Column(name = "M1_OC")
+	private BigDecimal m1Oc;
+
+	@Column(name = "M2_OC")
+	private BigDecimal m2Oc;
+
+	@Column(name = "M3_OC")
+	private BigDecimal m3Oc;
 
 }
