@@ -104,8 +104,14 @@ public class InsertPremiumReq {
 	@JsonProperty("TaxDedectSource")
 	private String taxDedectSource;
 	
-	@JsonProperty("ServiceTax")
-	private String serviceTax;
+	@JsonProperty("VatPremium")
+	private String vatPremium;
+	
+	@JsonProperty("BrokerageVat")
+	private String brokerageVat;
+	
+	@JsonProperty("DocumentType")
+	private String documentType;
 	
 	@JsonProperty("SlideScaleCom")
 	private String  slideScaleCom;
@@ -238,7 +244,6 @@ public class InsertPremiumReq {
 	private String acceptenceDate;
 	@JsonProperty("SourceId")
 	private String sourceId;
-	
 	
 
 	@JsonProperty("ClaimPayNo")

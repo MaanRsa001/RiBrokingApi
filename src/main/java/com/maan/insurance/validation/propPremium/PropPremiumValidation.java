@@ -301,7 +301,7 @@ public class PropPremiumValidation {
 						 list.add(new ErrorCheck(prop.getProperty("errors.amendmentDate.invalid"),"AmendmentDate","11"));
 							dateflag=false;
 							statDate=false;
-					}else if(Validation.ValidateTwo(req.getMaxDate(),req.getAmendmentDate()).equalsIgnoreCase("invalid"))
+					}else if(StringUtils.isNotBlank(req.getMaxDate()) && Validation.ValidateTwo(req.getMaxDate(),req.getAmendmentDate()).equalsIgnoreCase("invalid"))
 					{
 						 list.add(new ErrorCheck(prop.getProperty("errors.premium.amendDate"),"MaxDate,AmendmentDate","12"));
 						
@@ -556,7 +556,7 @@ public class PropPremiumValidation {
 					 {
 						  list.add(new ErrorCheck(prop.getProperty("errors.PremiumReserveQuotaShare1.Error"),"PremiumReserveQuotaShare","01"));
 					 }else if(Double.parseDouble(req.getPremiumReserveQuotaShare())<0){
-						  list.add(new ErrorCheck(prop.getProperty("errors.PremiumReserveQuotaShare1.less"),"PremiumReserveQuotaShare1","01"));
+						 // list.add(new ErrorCheck(prop.getProperty("errors.PremiumReserveQuotaShare1.less"),"PremiumReserveQuotaShare1","01"));
 						 
 					 }
 			 	 }
@@ -577,18 +577,29 @@ public class PropPremiumValidation {
 				 }
 				 
 				if("RI02".equalsIgnoreCase(req.getSourceId())){
-					 if(StringUtils.isBlank(req.getServiceTax())){
-						 list.add(new ErrorCheck(prop.getProperty("servicetax.empty"),"servicetax","01")); 
+					 if(StringUtils.isBlank(req.getVatPremium())){
+						 list.add(new ErrorCheck(prop.getProperty("vatpremium.empty"),"servicetax","01")); 
 					 }
 					 else{
-						 req.setServiceTax(req.getServiceTax().replaceAll(",", ""));
-						 if(val.numbervalid(req.getServiceTax()).equalsIgnoreCase("INVALID"))
+						 req.setVatPremium(req.getVatPremium().replaceAll(",", ""));
+						 if(val.numbervalid(req.getVatPremium()).equalsIgnoreCase("INVALID"))
 						 {
-							  list.add(new ErrorCheck(prop.getProperty("error.servicetax.number"),"servicetax","01"));
+							  list.add(new ErrorCheck(prop.getProperty("error.vatpremium.number"),"servicetax","01"));
 						 }
 					 }
 					 
-				}
+				
+					 if(StringUtils.isBlank(req.getBrokerageVat())){
+						 list.add(new ErrorCheck(prop.getProperty("brokeragevat.empty"),"servicetax","01")); 
+					 }
+					 else{
+						 req.setBrokerageVat(req.getBrokerageVat().replaceAll(",", ""));
+						 if(val.numbervalid(req.getBrokerageVat()).equalsIgnoreCase("INVALID"))
+						 {
+							  list.add(new ErrorCheck(prop.getProperty("error.brokeragevat.number"),"servicetax","01"));
+						 }
+					 }
+					}
 					 if(StringUtils.isBlank(req.getLossParticipation())){
 							 list.add(new ErrorCheck(prop.getProperty("lossParticipation.empty"),"lossParticipation","01"));
 						 }
@@ -893,14 +904,21 @@ public class PropPremiumValidation {
 			}
 	
 		if(StringUtils.isBlank(req.getProductId())) {
-			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "03"));
+			list.add(new ErrorCheck(prop.getProperty("Please Enter ProductId"),"ContractNo", "03"));
 			}
-		if(StringUtils.isBlank(req.getRequestNo())) {
-			list.add(new ErrorCheck("Please Enter BranchCode","BranchCode", "01"));
-			}
-	
 		if(StringUtils.isBlank(req.getTableType())) {
-			list.add(new ErrorCheck("Please Enter ContractNo","ContractNo", "03"));
+			list.add(new ErrorCheck(prop.getProperty("Please Enter TableType"),"ContractNo", "03"));
+			}
+		if (StringUtils.isBlank(req.getTransDropDownVal())) {
+			if("Main".equals(req.getTableType())) {
+				if (StringUtils.isBlank(req.getTransactionNo())) {
+					list.add(new ErrorCheck("Please Enter Transaction No", "OpstartDate", "12"));
+				}
+			}else {
+				if (StringUtils.isBlank(req.getRequestNo())) {
+					list.add(new ErrorCheck("Please Enter Request No", "OpendDate", "10"));
+				}
+			}
 			}
 //		if(StringUtils.isBlank(req.getTransDropDownVal())) {
 //			list.add(new ErrorCheck("Please Enter ContractNo"),"ContractNo", "03"));

@@ -364,6 +364,15 @@ public class RskPremiumDetailsRi implements Serializable {
 
 	    @Column(name="VAT_PREMIUM_DC")
 	    private BigDecimal vatPremiumDc ;
+	    
+	    @Column(name="BROKERAGE_VAT_OC")
+	    private BigDecimal brokerageVatOc ;
+
+	    @Column(name="BROKERAGE_VAT_DC")
+	    private BigDecimal brokerageVatDc ;
+	    
+	    @Column(name = "DOCUMENT_TYPE")
+		private String documentType;
 
 	    @Column(name="SC_COMM_OC")
 	    private BigDecimal scCommOc ;

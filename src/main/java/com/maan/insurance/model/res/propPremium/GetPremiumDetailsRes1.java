@@ -81,7 +81,16 @@ public class GetPremiumDetailsRes1 {
 	private String comissionSurplusUsd;
 	@JsonProperty("PremiumPortfolioInUsd")
 	private String premiumPortfolioInUsd;
-	
+	@JsonProperty("VatPremium")
+	private String vatPremium;
+	@JsonProperty("VatPremiumDc")
+	private String vatPremiumDc;
+	@JsonProperty("BrokerageVat")
+	private String brokerageVat;
+	@JsonProperty("BrokerageVatDc")
+	private String brokerageVatDc;
+	@JsonProperty("DocumentType")
+	private String documentType;
 	@JsonProperty("CliamPortfolioUsd")
 	private String cliamPortfolioUsd;
 	@JsonProperty("PremiumPortfolioOutUsd")

@@ -19,11 +19,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import lombok.*;
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.List;
-
 import java.math.BigDecimal;
 import java.util.Date;
-import javax.persistence.*;
 
 
 
@@ -366,11 +363,20 @@ private static final long serialVersionUID = 1L;
     @Column(name="TDS_DC")
     private BigDecimal tdsDc ;
 
-    @Column(name="ST_OC")
-    private BigDecimal stOc ;
+    @Column(name="VAT_PREMIUM_OC")
+    private BigDecimal vatPremiumOc ;
 
-    @Column(name="ST_DC")
-    private BigDecimal stDc ;
+    @Column(name="VAT_PREMIUM_DC")
+    private BigDecimal vatPremiumDc ;
+    
+    @Column(name="BROKERAGE_VAT_OC")
+    private BigDecimal brokerageVatOc ;
+
+    @Column(name="BROKERAGE_VAT_DC")
+    private BigDecimal brokerageVatDc ;
+    
+    @Column(name = "DOCUMENT_TYPE")
+	private String documentType;
 
     @Column(name="SC_COMM_OC")
     private BigDecimal scCommOc ;

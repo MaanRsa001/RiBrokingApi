@@ -29,7 +29,11 @@ public class ViewRIPremiumListRes1 {
 	
 	@JsonProperty("VatPremiumDc")
 	private String vatPremiumDc;
+	@JsonProperty("BrokerageVatOc")
+	private String brokerageVatOc;
 	
+	@JsonProperty("BrokerageVatDc")
+	private String brokerageVatDc;
 
 	@JsonProperty("ContNo")
 	private String contNo;
