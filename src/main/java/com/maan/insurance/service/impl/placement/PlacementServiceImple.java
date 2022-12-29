@@ -1,13 +1,27 @@
 package com.maan.insurance.service.impl.placement;
 
+import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.mail.Authenticator;
+import javax.mail.BodyPart;
+import javax.mail.Message;
+import javax.mail.Multipart;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -15,12 +29,14 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,48 +44,84 @@ import org.hibernate.query.internal.NativeQueryImpl;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.maan.insurance.model.entity.ConstantDetail;
+import com.maan.insurance.model.entity.MailMaster;
 import com.maan.insurance.model.entity.MailNotificationDetail;
 import com.maan.insurance.model.entity.NotificationAttachmentDetail;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.PersonalInfoContact;
 import com.maan.insurance.model.entity.PositionMaster;
+import com.maan.insurance.model.entity.StatusMaster;
 import com.maan.insurance.model.entity.TmasDocTypeMaster;
 import com.maan.insurance.model.entity.TtrnRiPlacement;
+import com.maan.insurance.model.entity.TtrnRiPlacementStatus;
 import com.maan.insurance.model.entity.TtrnRiskDetails;
+import com.maan.insurance.model.repository.MailMasterRepository;
+import com.maan.insurance.model.repository.MailNotificationDetailRepository;
+import com.maan.insurance.model.repository.NotificationAttachmentDetailRepository;
 import com.maan.insurance.model.repository.TtrnRiPlacementRepository;
+import com.maan.insurance.model.repository.TtrnRiPlacementStatusRepository;
+import com.maan.insurance.model.req.placement.AttachFileReq;
+import com.maan.insurance.model.req.placement.DeleteFileReq;
 import com.maan.insurance.model.req.placement.EditPlacingDetailsReq;
 import com.maan.insurance.model.req.placement.GetExistingAttachListReq;
 import com.maan.insurance.model.req.placement.GetExistingReinsurerListReq;
 import com.maan.insurance.model.req.placement.GetMailToListReq;
 import com.maan.insurance.model.req.placement.GetPlacementInfoListReq;
+import com.maan.insurance.model.req.placement.GetPlacementViewListReq;
+import com.maan.insurance.model.req.placement.GetPlacementViewReq;
 import com.maan.insurance.model.req.placement.GetPlacingInfoReq;
 import com.maan.insurance.model.req.placement.GetReinsurerInfoReq;
+import com.maan.insurance.model.req.placement.InsertDocdetailsReq;
+import com.maan.insurance.model.req.placement.InsertMailDetailsReq;
 import com.maan.insurance.model.req.placement.ReinsListReq;
 import com.maan.insurance.model.req.placement.SavePlacingReq;
+import com.maan.insurance.model.req.placement.SendMailReq;
+import com.maan.insurance.model.req.placement.UpdateMailDetailsReq;
+import com.maan.insurance.model.req.placement.UpdateMailDetailsReq1;
+import com.maan.insurance.model.req.placement.UpdatePlacementListReq;
+import com.maan.insurance.model.req.placement.UpdatePlacementReq;
+import com.maan.insurance.model.req.placement.UploadDocumentReq;
+import com.maan.insurance.model.req.placement.UploadDocumentReq1;
 import com.maan.insurance.model.res.DropDown.CommonResDropDown;
 import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes1;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
+import com.maan.insurance.model.res.placement.AttachFileRes;
+import com.maan.insurance.model.res.placement.AttachFileRes1;
 import com.maan.insurance.model.res.placement.CommonSaveResList;
 import com.maan.insurance.model.res.placement.EditPlacingDetailsRes;
+import com.maan.insurance.model.res.placement.EditPlacingDetailsRes1;
+import com.maan.insurance.model.res.placement.EditPlacingDetailsResponse;
 import com.maan.insurance.model.res.placement.GetExistingAttachListRes;
 import com.maan.insurance.model.res.placement.GetExistingAttachListRes1;
 import com.maan.insurance.model.res.placement.GetPlacementInfoListRes;
 import com.maan.insurance.model.res.placement.GetPlacementInfoListRes1;
 import com.maan.insurance.model.res.placement.GetPlacementNoRes;
 import com.maan.insurance.model.res.placement.GetPlacementNoRes1;
+import com.maan.insurance.model.res.placement.GetPlacementViewListRes;
+import com.maan.insurance.model.res.placement.GetPlacementViewListRes1;
+import com.maan.insurance.model.res.placement.GetPlacementViewRes;
+import com.maan.insurance.model.res.placement.GetPlacementViewRes1;
 import com.maan.insurance.model.res.placement.GetPlacingInfoRes;
 import com.maan.insurance.model.res.placement.GetPlacingInfoRes1;
 import com.maan.insurance.model.res.placement.GetReinsurerInfoRes;
 import com.maan.insurance.model.res.placement.GetReinsurerInfoRes1;
 import com.maan.insurance.model.res.placement.GetReinsurerInfoResponse;
+import com.maan.insurance.model.res.placement.InsertDocdetailsRes;
+import com.maan.insurance.model.res.placement.InsertMailDetailsRes;
+import com.maan.insurance.model.res.placement.InsertMailDetailsRes1;
 import com.maan.insurance.model.res.placement.InsertPlacingRes;
 import com.maan.insurance.model.res.placement.InsertPlacingRes1;
 import com.maan.insurance.model.res.placement.ProposalInfoRes;
 import com.maan.insurance.model.res.placement.ProposalInfoRes1;
 import com.maan.insurance.model.res.placement.SavePlacingRes;
+import com.maan.insurance.model.res.placement.UploadDocumentRes;
+import com.maan.insurance.model.res.placement.UploadDocumentRes1;
+import com.maan.insurance.model.res.retro.CommonResponse;
+import com.maan.insurance.model.res.xolPremium.CommonSaveRes;
 import com.maan.insurance.service.impl.QueryImplemention;
 import com.maan.insurance.service.impl.Dropdown.DropDownServiceImple;
 import com.maan.insurance.service.placement.PlacementService;
@@ -78,6 +130,7 @@ import com.maan.insurance.validation.Formatters;
 @Service
 public class PlacementServiceImple implements PlacementService {
 	private Logger log = LogManager.getLogger(PlacementServiceImple.class);
+	
 	
 	@Autowired
 	private QueryImplemention queryImpl;
@@ -90,6 +143,15 @@ public class PlacementServiceImple implements PlacementService {
 	
 	@Autowired
 	private TtrnRiPlacementRepository ripRepo;
+	@Autowired
+	private TtrnRiPlacementStatusRepository placeStatusRepo;
+	@Autowired
+	private NotificationAttachmentDetailRepository notiRepo;
+	@Autowired
+	private MailMasterRepository mmRepo;
+	@Autowired
+	private MailNotificationDetailRepository  mailnotiRepo;
+	
 	
 	@PersistenceContext
 	private EntityManager em;
@@ -108,6 +170,9 @@ public class PlacementServiceImple implements PlacementService {
 	            log.info(e);
 	        }
 	    }
+	  
+	  String SMTP_AUTH_USER; 
+		String SMTP_AUTH_PWD;
 	  
 	@Override
 	public GetCommonDropDownRes getMailToList(GetMailToListReq bean) { 
@@ -698,7 +763,7 @@ public class PlacementServiceImple implements PlacementService {
 				ReinsListReq req =	bean.getReinsListReq().get(i);
 				res.setReinsurerId(req.getReinsureName());
 				res.setBrokerId(req.getPlacingBroker());
-				plamendId=getMaxAmendId(bean);
+				plamendId=getMaxAmendId(bean.getBranchCode(),bean.getEproposalNo(),bean.getReinsurerId(),bean.getBrokerId());
 				res.setPlacementamendId(StringUtils.isBlank(plamendId)?"0":plamendId);
 				result=getPlacementDetails(bean.getEproposalNo(),bean.getReinsurerId(),bean.getBrokerId(),bean.getBranchCode());
 				if(result!=null) {
@@ -739,12 +804,12 @@ public class PlacementServiceImple implements PlacementService {
 			}
 		return response;
 	}
-	private String getMaxAmendId(SavePlacingReq bean) {
+	private String getMaxAmendId(String branchCode, String eproposalNo, String reinsurerId, String brokerId) {
 		String plamendId="0";
 		try {
 			//GET_PLACEMENT_MAX_AMENDID
 			TtrnRiPlacement  list = ripRepo.findTop1ByBranchCodeAndProposalNoAndReinsurerIdAndBrokerIdOrderByPlacementAmendIdDesc(
-					bean.getBranchCode(),new BigDecimal(bean.getEproposalNo()),bean.getReinsurerId(),bean.getBrokerId());
+					branchCode,new BigDecimal(eproposalNo),reinsurerId,brokerId);
 			if(list != null) {
 			plamendId= String.valueOf(list.getPlacementAmendId().intValue()+1);
 			}
@@ -763,7 +828,7 @@ public class PlacementServiceImple implements PlacementService {
 			Root<TtrnRiPlacement> pm = query.from(TtrnRiPlacement.class);
 
 			query.multiselect(pm.get("placementNo").alias("PLACEMENT_NO"),pm.get("sno").alias("SNO"),
-					pm.get("bouquetNo").alias("BOUQUET_NO"),pm.get("proposalNo").alias("PROPOSAL_NO"),
+					pm.get("bouquetNo").alias("BOUQUET_NO"),pm.get("proposalNo").alias("PROPOSAL_NO"),pm.get("baseProposalNo").alias("BASE_PROPOSAL_NO"),
 					pm.get("contractNo").alias("CONTRACT_NO"),pm.get("layerNo").alias("LAYER_NO"),
 					pm.get("sectionNo").alias("SECTION_NO"),pm.get("amendId").alias("AMEND_ID"),
 					pm.get("cedingCompanyId").alias("CEDING_COMPANY_ID"),pm.get("reinsurerId").alias("REINSURER_ID"),
@@ -867,125 +932,102 @@ public class PlacementServiceImple implements PlacementService {
 	@Override
 	public EditPlacingDetailsRes editPlacingDetails(EditPlacingDetailsReq bean) {
 		EditPlacingDetailsRes response = new EditPlacingDetailsRes();
-//		List<Tuple> result=null;
-//		List<Map<String,Object>>list=null;
-//		List<String> snos=new ArrayList<String>();
-//		List<String> bouquetNos=new ArrayList<String>();
-//		List<String>baseproposalNos=new ArrayList<String>();
-//		List<String> reinsurerIds=new ArrayList<String>();
-//		List<String> brokerIds=new ArrayList<String>();
-//		List<String>proposalNos=new ArrayList<String>();
-//		List<String> reinsurerNames=new ArrayList<String>();
-//		List<String> brokerNames=new ArrayList<String>();
-//		List<String>cedingCompanys=new ArrayList<String>();
-//		List<String>cedingCompanyNames=new ArrayList<String>();
-//		List<String>shareOffered=new ArrayList<String>();
-//		List<String>writtenLine=new ArrayList<String>();
-//		List<String>brokerage=new ArrayList<String>();
-//		List<String>writtenvaliditydate=new ArrayList<String>();
-//		List<String>writtenvalidityRemarks=new ArrayList<String>();
-//		List<String>proposedWL=new ArrayList<String>();
-//		List<String>signedLine=new ArrayList<String>();
-//		List<String>proposedSL=new ArrayList<String>();
-//		List<String>reoffer=new ArrayList<String>();
-//		List<String>tqrBrokerageAmt=new ArrayList<String>();
-//		List<String>signedLineValidity=new ArrayList<String>();
-//		List<String>signedLineRemarks=new ArrayList<String>();
-//		List<String>emailStatus=new ArrayList<String>();
-//		List<String>psignedLine=new ArrayList<String>();
-//		
-//		try {
-//			String query="";
-//			Object[]obj=null;
-//			if(StringUtils.isBlank(bean.getSearchType())) {
-//				result=GetPlacementEdit(bean);
-//			}else {
-//				result=GetPlacementSearchEdit(bean);
-//			}
-//			
-//			if(!CollectionUtils.isEmpty(result)) {
-//				for(int i=0;i<result.size();i++) {
-//					Map<String,Object>map=result.get(i);
-//					snos.add(map.get("SNO")==null?"":map.get("SNO").toString());
-//					bouquetNos.add(map.get("BOUQUET_NO")==null?"":map.get("BOUQUET_NO").toString());
-//					baseproposalNos.add(map.get("BASE_PROPOSAL_NO")==null?"":map.get("BASE_PROPOSAL_NO").toString());
-//					reinsurerIds.add(map.get("REINSURER_ID")==null?"":map.get("REINSURER_ID").toString());
-//					brokerIds.add(map.get("BROKER_ID")==null?"":map.get("BROKER_ID").toString());
-//					proposalNos.add(map.get("PROPOSAL_NO")==null?"":map.get("PROPOSAL_NO").toString());
-//					reinsurerNames.add(map.get("REINSURER_NAME")==null?"":map.get("REINSURER_NAME").toString());
-//					brokerNames.add(map.get("BROKER_NAME")==null?"":map.get("BROKER_NAME").toString());
-//					cedingCompanys.add(map.get("CEDING_COMPANY_ID")==null?"":map.get("CEDING_COMPANY_ID").toString());
-//					cedingCompanyNames.add(map.get("CEDING_COMPANY_NAME")==null?"":map.get("CEDING_COMPANY_NAME").toString());
-//					shareOffered.add(map.get("SHARE_OFFERED")==null?"":dropDownImple.formattereight(map.get("SHARE_OFFERED").toString()));
-//					writtenLine.add(map.get("SHARE_WRITTEN")==null?"":dropDownImple.formattereight(map.get("SHARE_WRITTEN").toString()));
-//					brokerage.add(map.get("BROKERAGE_PER")==null?"":map.get("BROKERAGE_PER").toString());
-//					writtenvaliditydate.add(map.get("WRITTEN_LINE_VALIDITY")==null?"":map.get("WRITTEN_LINE_VALIDITY").toString());
-//					writtenvalidityRemarks.add(map.get("WRITTEN_LINE_REMARKS")==null?"":map.get("WRITTEN_LINE_REMARKS").toString());
-//					proposedWL.add(map.get("SHARE_PROPOSAL_WRITTEN")==null?"":dropDownImple.formattereight(map.get("SHARE_PROPOSAL_WRITTEN").toString()));
-//					signedLine.add(map.get("SHARE_SIGNED")==null?"":dropDownImple.formattereight(map.get("SHARE_SIGNED").toString()));
-//					psignedLine.add(map.get("SHARE_SIGNED")==null?"":dropDownImple.formattereight(map.get("SHARE_SIGNED").toString()));
-//					proposedSL.add(map.get("SHARE_PROPOSED_SIGNED")==null?"":dropDownImple.formattereight(map.get("SHARE_PROPOSED_SIGNED").toString()));
-//					reoffer.add(map.get("SHARE_OFFERED")==null?"":dropDownImple.formattereight(map.get("SHARE_OFFERED").toString()));
-//					tqrBrokerageAmt.add(map.get("TQR_BROKERAGE_AMT")==null?"":dropDownImple.formattereight(map.get("TQR_BROKERAGE_AMT").toString()));
-//					signedLineValidity.add(map.get("SHARE_LINE_VALIDITY")==null?"":map.get("SHARE_LINE_VALIDITY").toString());
-//					signedLineRemarks.add(map.get("SHARE_LINE_REMARKS")==null?"":map.get("SHARE_LINE_REMARKS").toString());
-//					emailStatus.add(map.get("MAIL_STATUS")==null?"":map.get("MAIL_STATUS").toString());
-//				}
-//				bean.setSnos(snos);
-//				bean.setBaseproposalNos(baseproposalNos);
-//				bean.setBouquetNos(bouquetNos);
-//				bean.setReinsurerIds(reinsurerIds);
-//				bean.setReinsurerNames(reinsurerNames);
-//				bean.setBrokerNames(brokerNames);
-//				bean.setCedingCompanys(cedingCompanys);
-//				bean.setCedingCompanyNames(cedingCompanyNames);
-//				bean.setBrokerIds(brokerIds);
-//				bean.setProposalNos(proposalNos);
-//				bean.setShareOffered(shareOffered);
-//				bean.setWrittenLine(writtenLine);
-//				bean.setBrokerage(brokerage);
-//				bean.setWrittenvaliditydate(writtenvaliditydate);
-//				bean.setWrittenvalidityRemarks(writtenvalidityRemarks);
-//				bean.setProposedWL(proposedWL);
-//				bean.setSignedLine(signedLine);
-//				bean.setProposedSL(proposedSL);
-//				bean.setReoffer(reoffer);
-//				bean.setTqrBrokerageAmt(tqrBrokerageAmt);
-//				bean.setSignedLineValidity(signedLineValidity);
-//				bean.setSignedLineRemarks(signedLineRemarks);
-//				bean.setEmailStatus(emailStatus);
-//				bean.setPsignedLine(psignedLine);
-//			}
-//			if(StringUtils.isBlank(bean.getSearchType())) {
-//			query=getQuery("GET_PLACEMENT_STATUS_EDIT");
-//			obj=new Object[4];
-//			obj[0]=bean.getEproposalNo();
-//			obj[1]=bean.getBranchCode();
-//			obj[2]=bean.getReinsurerId();
-//			obj[3]=bean.getBrokerId(); 
-//			
-//			list=this.mytemplate.queryForList(query, obj);
-//			if(!CollectionUtils.isEmpty(list)) {
-//				Map<String,Object>map=list.get(0);
-//				bean.setCurrentStatus(map.get("NEW_STATUS")==null?"":map.get("NEW_STATUS").toString());
-//				
-//				
-//			}else {
-//				if(StringUtils.isBlank(bean.getNewStatus())) {
-//				bean.setCurrentStatus(StringUtils.isBlank(bean.getSearchStatus())?"O":bean.getSearchStatus());
-//				}
-//			}
-//			}else {
-//				bean.setCurrentStatus(StringUtils.isBlank(bean.getSearchStatus())?"O":bean.getSearchStatus());
-//			}
-//			
-//		}catch (Exception e) {
-//			e.printStackTrace();
-//			logger.error("Exception:", e);
-//		}
+		List<EditPlacingDetailsRes1> resList = new ArrayList<EditPlacingDetailsRes1>();
+		EditPlacingDetailsResponse res1 = new EditPlacingDetailsResponse();
+		List<Tuple> result=null;
+		try {
+			if(StringUtils.isBlank(bean.getSearchType())) {
+				result=GetPlacementEdit(bean.getBranchCode(),bean.getBrokerId(),bean.getEproposalNo(),bean.getReinsurerId());
+			}else {
+				result=GetPlacementSearchEdit(bean);
+			}
+			if(!CollectionUtils.isEmpty(result)) {
+				for(int i=0;i<result.size();i++) {
+					Tuple map=result.get(i);
+					EditPlacingDetailsRes1 res = new EditPlacingDetailsRes1();
+					res.setSno(map.get("SNO")==null?"":map.get("SNO").toString());
+					res.setBaseproposalNo(map.get("BASE_PROPOSAL_NO")==null?"":map.get("BASE_PROPOSAL_NO").toString());
+					res.setBouquetNo(map.get("BOUQUET_NO")==null?"":map.get("BOUQUET_NO").toString());
+					res.setReinsurerId(map.get("REINSURER_ID")==null?"":map.get("REINSURER_ID").toString());
+					res.setReinsurerName(map.get("REINSURER_NAME")==null?"":map.get("REINSURER_NAME").toString());
+					res.setBrokerName(map.get("BROKER_NAME")==null?"":map.get("BROKER_NAME").toString());
+					res.setCedingCompany(map.get("CEDING_COMPANY_ID")==null?"":map.get("CEDING_COMPANY_ID").toString());
+					res.setCedingCompanyName(map.get("CEDING_COMPANY_NAME")==null?"":map.get("CEDING_COMPANY_NAME").toString());
+					res.setBrokerId(map.get("BROKER_ID")==null?"":map.get("BROKER_ID").toString());
+					res.setProposalNo(map.get("PROPOSAL_NO")==null?"":map.get("PROPOSAL_NO").toString());
+					res.setShareOffered(map.get("SHARE_OFFERED")==null?"":dropDownImple.formattereight(map.get("SHARE_OFFERED").toString()));
+					res.setWrittenLine(map.get("SHARE_WRITTEN")==null?"":dropDownImple.formattereight(map.get("SHARE_WRITTEN").toString()));
+					res.setBrokerage(map.get("BROKERAGE_PER")==null?"":map.get("BROKERAGE_PER").toString());
+					res.setWrittenvaliditydate(map.get("WRITTEN_LINE_VALIDITY")==null?"":map.get("WRITTEN_LINE_VALIDITY").toString());
+					res.setWrittenvalidityRemarks(map.get("WRITTEN_LINE_REMARKS")==null?"":map.get("WRITTEN_LINE_REMARKS").toString());
+					res.setProposedWL(map.get("SHARE_PROPOSAL_WRITTEN")==null?"":dropDownImple.formattereight(map.get("SHARE_PROPOSAL_WRITTEN").toString()));
+					res.setSignedLine(map.get("SHARE_SIGNED")==null?"":dropDownImple.formattereight(map.get("SHARE_SIGNED").toString()));
+					res.setProposedSL(map.get("SHARE_PROPOSED_SIGNED")==null?"":dropDownImple.formattereight(map.get("SHARE_PROPOSED_SIGNED").toString()));
+					res.setReoffer(map.get("SHARE_OFFERED")==null?"":dropDownImple.formattereight(map.get("SHARE_OFFERED").toString()));
+					// doubt not in table TQR_BROKERAGE_AMT
+					//	res.setTqrBrokerageAmt(map.get("TQR_BROKERAGE_AMT")==null?"":dropDownImple.formattereight(map.get("TQR_BROKERAGE_AMT").toString()));
+					res.setSignedLineValidity(map.get("SHARE_LINE_VALIDITY")==null?"":map.get("SHARE_LINE_VALIDITY").toString());
+					res.setSignedLineRemarks(map.get("SHARE_LINE_REMARKS")==null?"":map.get("SHARE_LINE_REMARKS").toString());
+					res.setEmailStatus(map.get("MAIL_STATUS")==null?"":map.get("MAIL_STATUS").toString());
+					res.setPsignedLine(map.get("SHARE_SIGNED")==null?"":dropDownImple.formattereight(map.get("SHARE_SIGNED").toString()));
+					resList.add(res);
+					}
+				res1.setPlacingDetails(resList);
+				}
+			if(StringUtils.isBlank(bean.getSearchType())) {
+				//GET_PLACEMENT_STATUS_EDIT
+				CriteriaBuilder cb = em.getCriteriaBuilder(); 
+				CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+				
+				Root<TtrnRiPlacementStatus> pm = query.from(TtrnRiPlacementStatus.class);
+
+				query.multiselect(pm.get("newStatus").alias("NEW_STATUS"),pm.get("currentStatus").alias("CURRENT_STATUS")); 
+
+				//status
+				Subquery<Long> status = query.subquery(Long.class); 
+				Root<TtrnRiPlacementStatus> pms = status.from(TtrnRiPlacementStatus.class);
+				status.select(cb.max(pms.get("statusNo")));
+				Predicate a1 = cb.equal( pm.get("proposalNo"), pms.get("proposalNo"));
+				Predicate a2 = cb.equal( pm.get("branchCode"), pms.get("branchCode"));
+				Predicate a3 = cb.equal( pm.get("reinsurerId"), pms.get("reinsurerId"));
+				Predicate a4 = cb.equal( pm.get("brokerId"), pms.get("brokerId"));
+				status.where(a1,a2,a3,a4);
+
+				Predicate n1 = cb.equal(pm.get("proposalNo"), bean.getEproposalNo());
+				Predicate n2 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+				Predicate n3 = cb.equal(pm.get("reinsurerId"), bean.getReinsurerId());
+				Predicate n4 = cb.equal(pm.get("brokerId"), bean.getBrokerId());
+				Predicate n5 = cb.equal(pm.get("statusNo"), status);
+				query.where(n1,n2,n3,n4,n5);
+				
+				TypedQuery<Tuple> res = em.createQuery(query);
+				List<Tuple> list = res.getResultList();
+			 
+			if(!CollectionUtils.isEmpty(list)) {
+				Tuple map=list.get(0);
+				res1.setCurrentStatus(map.get("NEW_STATUS")==null?"":map.get("NEW_STATUS").toString());
+				
+			}else {
+				if(StringUtils.isBlank(bean.getNewStatus())) {
+					res1.setCurrentStatus(StringUtils.isBlank(bean.getSearchStatus())?"O":bean.getSearchStatus());
+				}
+			}
+			}else {
+				res1.setCurrentStatus(StringUtils.isBlank(bean.getSearchStatus())?"O":bean.getSearchStatus());
+			}
+			response.setCommonResponse(res1);	
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
 		return response;
 	}
-	private List<Tuple> GetPlacementEdit(EditPlacingDetailsReq bean) {
+	
+	private List<Tuple> GetPlacementEdit(String branchCode, String brokerId, String eproposalNo, String reinsurerId) {
 		List<Tuple> list =null;
 		try {
 			//GET_PLACEMENT_EDIT
@@ -1062,7 +1104,9 @@ public class PlacementServiceImple implements PlacementService {
 					pm.get("writtenLineValidity").alias("WRITTEN_LINE_VALIDITY"),pm.get("writtenLineRemarks").alias("WRITTEN_LINE_REMARKS"),
 					pm.get("shareLineValidity").alias("SHARE_LINE_VALIDITY"),pm.get("shareLineRemarks").alias("SHARE_LINE_REMARKS"),
 					pm.get("shareProposedSigned").alias("SHARE_PROPOSED_SIGNED"),mailStatus.alias("MAIL_STATUS"),
-					pm.get("placementAmendId").alias("PLACEMENT_AMEND_ID")); 
+					pm.get("placementAmendId").alias("PLACEMENT_AMEND_ID"),
+					pm.get("contractNo").alias("CONTRACT_NO"),pm.get("layerNo").alias("LAYER_NO"),
+					pm.get("sectionNo").alias("SECTION_NO")); 
 
 			// MAXAmend ID
 			Subquery<Long> amend = query.subquery(Long.class); 
@@ -1074,10 +1118,10 @@ public class PlacementServiceImple implements PlacementService {
 			Predicate a4 = cb.equal( pm.get("brokerId"), pms.get("brokerId"));
 			amend.where(a1,a2,a3,a4);
 
-			Predicate n1 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
-			Predicate n2 = cb.equal(pm.get("proposalNo"), bean.getEproposalNo());
-			Predicate n3 = cb.equal(pm.get("reinsurerId"), bean.getReinsurerId());
-			Predicate n4 = cb.equal(pm.get("brokerId"), bean.getBrokerId());
+			Predicate n1 = cb.equal(pm.get("branchCode"), branchCode);
+			Predicate n2 = cb.equal(pm.get("proposalNo"), eproposalNo);
+			Predicate n3 = cb.equal(pm.get("reinsurerId"), reinsurerId);
+			Predicate n4 = cb.equal(pm.get("brokerId"), brokerId);
 			Predicate n5 = cb.equal(pm.get("placementAmendId"), amend);
 			query.where(n1,n2,n3,n4,n5);
 			
@@ -1089,30 +1133,1045 @@ public class PlacementServiceImple implements PlacementService {
 		}
 		return list;
 	}
-	private List<Map<String, Object>> GetPlacementSearchEdit(EditPlacingDetailsReq bean) {
-		List<Map<String,Object>>list=null;
-		String query="";
+	private List<Tuple> GetPlacementSearchEdit(EditPlacingDetailsReq bean) {
+		List<Tuple> list=null;
 		try {
-			Object[] obj=new Object[5];
-			obj[0]=bean.getBranchCode();
-			obj[2]=bean.getSearchReinsurerId();
-			obj[3]=bean.getSearchBrokerId();
-			obj[4]=bean.getSearchStatus();
-//			if(StringUtils.isNotBlank(bean.getBouquetNo())) {
-//				query=getQuery("GET_PLACEMENT_SEARCHBQ_EDIT");
-//				obj[1]=bean.getBouquetNo();
-//			}else if(StringUtils.isNotBlank(bean.getBaseProposalNo())) {
-//				query=getQuery("GET_PLACEMENT_SEARCHBP_EDIT");
-//				obj[1]=bean.getBaseProposalNo();
-//			}else {
-//				query=getQuery("GET_PLACEMENT_SEARCH_EDIT");
-//				obj[1]=bean.getEproposalNo();
-//			}
-//			
-//			list=this.mytemplate.queryForList(query, obj);
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<TtrnRiPlacement> pm = query.from(TtrnRiPlacement.class);
+			
+			//cedingCompanyName
+			Subquery<String> cedingCompanyName = query.subquery(String.class); 
+			Root<PersonalInfo> personal = cedingCompanyName.from(PersonalInfo.class);
+			cedingCompanyName.select(personal.get("companyName"));
+			Predicate b1 = cb.equal( pm.get("cedingCompanyId"), personal.get("customerId"));
+			Predicate b2 = cb.equal( pm.get("branchCode"), personal.get("branchCode"));
+			Predicate b3 = cb.equal( personal.get("customerType"), "C");
+			cedingCompanyName.where(b1,b2,b3);
+			
+			//reinsurerName
+			Subquery<String> reinsurerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi = reinsurerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName1 = cb.concat(pi.get("firstName"), " ");
+			reinsurerName.select(cb.concat(firstName1, pi.get("lastName")));
+			//maxAmend
+			Subquery<Long> maxAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis = maxAmend.from(PersonalInfo.class);
+			maxAmend.select(cb.max(pis.get("amendId")));
+			Predicate c1 = cb.equal( pis.get("customerId"), pi.get("customerId"));
+			maxAmend.where(c1);
+			
+			Predicate d1 = cb.equal( pi.get("customerType"), "R");
+			Predicate d2 = cb.equal( pi.get("customerId"), pm.get("reinsurerId"));
+			Predicate d3 = cb.equal( pi.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi.get("amendId"), maxAmend);
+			reinsurerName.where(d1,d2,d3,d4);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			//maxAmend
+			Subquery<Long> bAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = bAmend.from(PersonalInfo.class);
+			bAmend.select(cb.max(pis1.get("amendId")));
+			Predicate f1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			bAmend.where(f1);
+			
+			Predicate e1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate e2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate e3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate e4 = cb.equal( pi1.get("amendId"), bAmend);
+			brokerName.where(e1,e2,e3,e4);
+			
+			//mailStatus
+			Subquery<String> mailStatus = query.subquery(String.class); 
+			Root<MailNotificationDetail> mail = mailStatus.from(MailNotificationDetail.class);
+			mailStatus.select(mail.get("mailStatus"));
+			Predicate g1 = cb.equal( pm.get("proposalNo"), mail.get("proposalNo"));
+			Predicate g2 = cb.equal( pm.get("reinsurerId"), mail.get("reinsurerId"));
+			Predicate g3 = cb.equal(pm.get("brokerId"), mail.get("brokerId"));
+			Predicate g4 = cb.equal(pm.get("status"), mail.get("mailType"));
+			mailStatus.where(g1,g2,g3,g4);
+
+			query.multiselect(pm.get("baseProposalNo").alias("BASE_PROPOSAL_NO"),pm.get("sno").alias("SNO"),
+					pm.get("bouquetNo").alias("BOUQUET_NO"),pm.get("proposalNo").alias("PROPOSAL_NO"),
+					pm.get("cedingCompanyId").alias("CEDING_COMPANY_ID"),cedingCompanyName.alias("CEDING_COMPANY_NAME"),
+					pm.get("reinsurerId").alias("REINSURER_ID"),pm.get("brokerId").alias("BROKER_ID"),
+					reinsurerName.alias("REINSURER_NAME"),brokerName.alias("BROKER_NAME"),
+					pm.get("shareOffered").alias("SHARE_OFFERED"),pm.get("shareWritten").alias("SHARE_WRITTEN"),
+					pm.get("shareProposalWritten").alias("SHARE_PROPOSAL_WRITTEN"),pm.get("shareSigned").alias("SHARE_SIGNED"),
+					pm.get("brokerage").alias("BROKERAGE_PER"),pm.get("status").alias("STATUS"),
+					pm.get("writtenLineValidity").alias("WRITTEN_LINE_VALIDITY"),pm.get("writtenLineRemarks").alias("WRITTEN_LINE_REMARKS"),
+					pm.get("shareLineValidity").alias("SHARE_LINE_VALIDITY"),pm.get("shareLineRemarks").alias("SHARE_LINE_REMARKS"),
+					pm.get("shareProposedSigned").alias("SHARE_PROPOSED_SIGNED"),mailStatus.alias("MAIL_STATUS")); 
+					
+			// MAXAmend ID
+			Subquery<Long> amend = query.subquery(Long.class); 
+			Root<TtrnRiPlacement> pms = amend.from(TtrnRiPlacement.class);
+			amend.select(cb.max(pms.get("placementAmendId")));
+			Predicate a1 = cb.equal( pm.get("branchCode"), pms.get("branchCode"));
+			Predicate a2 = cb.equal( pm.get("proposalNo"), pms.get("proposalNo"));
+			Predicate a3 = cb.equal( pm.get("reinsurerId"), pms.get("reinsurerId"));
+			Predicate a4 = cb.equal( pm.get("brokerId"), pms.get("brokerId"));
+			amend.where(a1,a2,a3,a4);
+
+			Predicate n1 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			Predicate n3 = cb.equal(pm.get("reinsurerId"), bean.getSearchReinsurerId());
+			Predicate n4 = cb.equal(pm.get("brokerId"), bean.getSearchBrokerId());
+			Predicate n5 = cb.equal(pm.get("placementAmendId"), amend);
+			Predicate n6 = cb.equal(pm.get("status"), bean.getSearchStatus());
+			if(StringUtils.isNotBlank(bean.getBouquetNo())) {
+				//GET_PLACEMENT_SEARCHBQ_EDIT
+				Predicate n2 = cb.equal(pm.get("bouquetNo"), bean.getBouquetNo());
+				query.where(n1,n2,n3,n4,n5,n6);
+				
+			}else if(StringUtils.isNotBlank(bean.getBaseProposalNo())) {
+				//GET_PLACEMENT_SEARCHBP_EDIT
+				Predicate n2 = cb.equal(pm.get("baseProposalNo"), bean.getBaseProposalNo());
+				query.where(n1,n2,n3,n4,n5,n6);
+			}else {
+				//GET_PLACEMENT_SEARCH_EDIT
+				Predicate n2 = cb.equal(pm.get("proposalNo"), bean.getEproposalNo());
+				query.where(n1,n2,n3,n4,n5,n6);
+			}
+			TypedQuery<Tuple> res = em.createQuery(query);
+			list = res.getResultList();
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return list;
 	}
-}
+
+	@Override
+	public CommonResponse updatePlacement(UpdatePlacementReq bean) {
+		CommonResponse response = new CommonResponse();
+		String plamendId="",statusNo="";
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		try {
+			Tuple result=null;
+			if(StringUtils.isBlank(bean.getStatusNo())) {
+			statusNo=fm.getSequence("StatusNo","0","0", bean.getBranchCode(),"","");
+			bean.setStatusNo(statusNo);
+			}
+			//INSERT_PLACEMENT_DETAIL
+			for(int i=0;i<bean.getPlacementListReq().size();i++) {
+				TtrnRiPlacement entity = new TtrnRiPlacement();
+				UpdatePlacementListReq req =bean.getPlacementListReq().get(i);
+				bean.setReinsurerId(req.getReinsurerId());
+				bean.setBrokerId(req.getBrokerId());
+				bean.setEproposalNo(req.getProposalNo());
+				plamendId=getMaxAmendId(bean.getBranchCode(),bean.getEproposalNo(),bean.getReinsurerId(),bean.getBrokerId());
+				bean.setPlacementamendId(StringUtils.isBlank(plamendId)?"0":plamendId);
+				
+				result=getPlacementDetails(bean.getEproposalNo(),bean.getReinsurerId(),bean.getBrokerId(),bean.getBranchCode());
+				entity.setPlacementNo(result.get("PLACEMENT_NO")==null?BigDecimal.ZERO:new BigDecimal(result.get("PLACEMENT_NO").toString()));
+				entity.setSno(result.get("SNO")==null?BigDecimal.ZERO:new BigDecimal(result.get("SNO").toString()));
+				entity.setBouquetNo(result.get("BOUQUET_NO")==null?BigDecimal.ZERO:new BigDecimal(result.get("BOUQUET_NO").toString()));
+				entity.setBaseProposalNo(result.get("BASE_PROPOSAL_NO")==null?BigDecimal.ZERO:new BigDecimal(result.get("BASE_PROPOSAL_NO").toString()));
+				entity.setProposalNo(result.get("PROPOSAL_NO")==null?BigDecimal.ZERO:new BigDecimal(result.get("PROPOSAL_NO").toString()));
+				entity.setContractNo(result.get("CONTRACT_NO")==null?BigDecimal.ZERO:new BigDecimal(result.get("CONTRACT_NO").toString()));
+				entity.setLayerNo(result.get("LAYER_NO")==null?BigDecimal.ZERO:new BigDecimal(result.get("LAYER_NO").toString()));
+				entity.setSectionNo(result.get("SECTION_NO")==null?BigDecimal.ZERO:new BigDecimal(result.get("SECTION_NO").toString()));
+				entity.setAmendId(result.get("AMEND_ID")==null?BigDecimal.ZERO:new BigDecimal(result.get("AMEND_ID").toString()));
+				entity.setCedingCompanyId(result.get("CEDING_COMPANY_ID")==null?"":result.get("CEDING_COMPANY_ID").toString());
+				entity.setReinsurerId(result.get("REINSURER_ID")==null?"":result.get("REINSURER_ID").toString());
+				entity.setBrokerId(result.get("BROKER_ID")==null?"":result.get("BROKER_ID").toString());
+				entity.setPlacementMode(result.get("PLACEMENT_MODE")==null?"":result.get("PLACEMENT_MODE").toString());
+				entity.setStatus(bean.getNewStatus());;
+				
+				if("RO".equalsIgnoreCase(bean.getNewStatus())) {
+					entity.setShareOffered(new BigDecimal(req.getReoffer()));
+					
+				}else {
+					entity.setShareOffered(new BigDecimal(req.getShareOffered()));
+					entity.setShareWritten(new BigDecimal(req.getWrittenLine()));
+					entity.setShareProposalWritten(new BigDecimal(req.getProposedWL()));
+					entity.setWrittenLineValidity(sdf.parse(req.getWrittenvaliditydate()));
+					entity.setWrittenLineRemarks(req.getWrittenvalidityRemarks());
+					entity.setShareSigned(new BigDecimal(req.getSignedLine()));
+					entity.setShareLineValidity(sdf.parse(req.getSignedLineValidity()));
+					entity.setShareLineRemarks(req.getSignedLineRemarks());
+					entity.setShareProposedSigned(new BigDecimal(req.getProposedSL()));
+					entity.setBrokerage(new BigDecimal(req.getBrokerage()));
+				}
+				entity.setPlacementAmendId(new BigDecimal(bean.getPlacementamendId()));
+				entity.setStatusNo(new BigDecimal(bean.getStatusNo()));
+				entity.setApproveStatus("Y");
+				entity.setUserId(bean.getUserId());
+				entity.setBranchCode(bean.getBranchCode());
+				entity.setSysDate(new Date());
+				ripRepo.saveAndFlush(entity);
+			}
+	//		updateStatus(bean,""); status =""
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+	@Override
+	public CommonResponse updateStatus(UpdatePlacementReq bean) {
+		CommonResponse response = new CommonResponse();
+		String corresId="",statusNo="";
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		try {
+			List<Map<String,Object>> list  = queryImpl.selectSingle("SELECT  CORRESPONDENT_SEQ.NEXTVAL seqval FROM DUAL", new String[] {});
+			if (!CollectionUtils.isEmpty(list)) {
+				corresId = list.get(0).get("SEQVAL") == null ? "" : list.get(0).get("SEQVAL").toString();
+			}
+			bean.setCorresId(corresId);
+			if(StringUtils.isBlank(bean.getStatusNo())) {
+				statusNo= fm.getSequence("StatusNo","0","0", bean.getBranchCode(),"","");
+				bean.setStatusNo(statusNo);
+			}
+			//INSERT_PLACEMENT_STATUS
+			for(int i=0;i<bean.getPlacementListReq().size();i++) {
+				UpdatePlacementListReq req =bean.getPlacementListReq().get(i);
+				TtrnRiPlacementStatus entity = new TtrnRiPlacementStatus();
+				entity.setSno(new BigDecimal(req.getSno()));
+				entity.setBouquetNo(new BigDecimal(req.getBouquetNo()));
+				entity.setBaseProposalNo(new BigDecimal(req.getBaseproposalNo()));
+				entity.setProposalNo(new BigDecimal(req.getProposalNo()));
+				TtrnRiPlacementStatus list1 =  placeStatusRepo.findTop1ByProposalNoAndReinsurerIdAndBrokerIdOrderByAmendIdDesc
+				(new BigDecimal(req.getProposalNo()),req.getReinsurerId(),req.getBrokerId());
+				int amend = 0;
+				if(list1 != null) {
+					 amend = list1.getAmendId()==null?0:(list1.getAmendId().intValue()+1);
+				}
+				entity.setAmendId(new BigDecimal(amend));;
+				entity.setReinsurerId(req.getReinsurerId());
+				entity.setBrokerId(req.getBrokerId());
+				entity.setEmailBy(bean.getEmailBy());
+				entity.setCurrentStatus(StringUtils.isBlank(bean.getCurrentStatus())?"O":bean.getCurrentStatus());
+				entity.setNewStatus(StringUtils.isBlank(bean.getNewStatus())?bean.getStatus():bean.getNewStatus());
+				entity.setCedentCorrespondence(bean.getCedentCorrespondent());
+				entity.setReinsurerCorrespondence(bean.getReinsurerCorrespondent());
+				entity.setTqrCorrespondence(bean.getTqrCorrespondent());
+				entity.setUpdateDate(sdf.parse(bean.getUpdateDate()));
+				entity.setStatus("Y");
+				entity.setBranchCode(bean.getBranchCode());
+				entity.setSysDate(new Date());
+				entity.setCorrespondentId(new BigDecimal(bean.getCorresId()));
+				entity.setStatusNo(new BigDecimal(bean.getStatusNo()));
+				entity.setUserId(new BigDecimal(bean.getUserId()));
+				entity.setApproverStatus("Y");				
+				placeStatusRepo.saveAndFlush(entity);		
+			}
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public UploadDocumentRes uploadDocument(UploadDocumentReq bean) {
+		UploadDocumentRes response = new UploadDocumentRes();
+		List<UploadDocumentRes1> resList = new ArrayList<UploadDocumentRes1>();
+		try {
+		for(int i=0;i<bean.getUploadDocumentReq1().size();i++) {
+			UploadDocumentReq1 req = bean.getUploadDocumentReq1().get(i);
+			UploadDocumentRes1 res = new UploadDocumentRes1();
+			res.setSno(req.getSno());
+			res.setBouquetNo(req.getBouquetNo());
+			res.setBaseproposalNo(req.getBaseproposalNo());
+			res.setBrokerId(req.getBrokerId());
+			res.setReinsurerId(req.getReinsurerId());
+			res.setProposalNo(req.getProposalNo());
+			resList.add(res);
+			insertDocdetails(bean);
+		}
+		response.setCommonResponse(resList);
+		response.setMessage("Success");
+		response.setIsError(false);
+	}catch(Exception e){
+			log.error(e);
+			e.printStackTrace();
+			response.setMessage("Failed");
+			response.setIsError(true);
+		}
+	return response;
+	}
+	public InsertDocdetailsRes insertDocdetails(UploadDocumentReq bean) {
+		InsertDocdetailsRes res = new InsertDocdetailsRes();
+		 try {
+			 if(bean.getUpload()!=null) {
+				 String filePath=bean.getFilePath();
+				
+				File tmpFile = new File(filePath);
+				if(!tmpFile.exists()){
+					tmpFile.mkdir();
+				}
+				//GET_DOC_SEQUENCE
+				NotificationAttachmentDetail list = notiRepo.findTop1ByOrderByDocIdDesc();
+				String docId="";
+				if(list!=null) {
+					docId =	list.getDocId()==null?"0":String.valueOf(list.getDocId().intValue()+1);
+				}
+				for(int i=0;i<bean.getInsertDocdetailsReq().size();i++) {
+					InsertDocdetailsReq req =  bean.getInsertDocdetailsReq().get(i);
+					final String orgFileName=req.getUploadFileName();
+				Calendar cal = Calendar.getInstance();
+				String time = cal.get(Calendar.DATE)+"-"+(cal.get(Calendar.MONTH)+1)+"-"
+				+cal.get(Calendar.YEAR)+"_"+cal.get(Calendar.HOUR)+cal.get(Calendar.MINUTE)+cal.get(Calendar.SECOND);
+				String ext = orgFileName.substring(orgFileName.lastIndexOf("."));
+				String fileName = orgFileName.substring(0, orgFileName.lastIndexOf("."))+"_"+time;
+				fileName = fileName + ext;
+				final File copyFile = new File(filePath+fileName);
+				
+				FileUtils.copyFile((File) req.getUpload(), copyFile);
+				res.setFileName(fileName);
+				
+				//INSET_NOTIFY_ATTACHEMENT
+				NotificationAttachmentDetail entity = new NotificationAttachmentDetail();	
+				entity.setDocId(StringUtils.isBlank(docId)?new BigDecimal("1"):new BigDecimal(docId));
+				entity.setDocType(req.getDocTypeId());
+				entity.setSno(new BigDecimal(bean.getSno()));
+				entity.setBouquetNo(new BigDecimal(bean.getBouquetNo()));
+				entity.setBaseProposalNo(new BigDecimal(bean.getBaseproposalNo()));
+				entity.setProposalNo(new BigDecimal(bean.getProposalNo()));
+				entity.setReinsurerId(bean.getReinsurerId());
+				entity.setBrokerId(bean.getBrokerId());
+				entity.setOrgFileName(req.getUploadFileName());
+				entity.setOurFileName(res.getFileName());
+				entity.setFileLocation(bean.getFilePath());
+				entity.setBranchCode(bean.getBranchCode());
+				entity.setUserId(bean.getUserId());
+				entity.setEntryDate(new Date());
+				entity.setCorrespondentId(StringUtils.isBlank(bean.getCorresId())?BigDecimal.ZERO:new BigDecimal(bean.getCorresId()));
+				entity.setDocDescription(req.getDocDesc());
+				notiRepo.saveAndFlush(entity);
+				}
+			 }
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
+		return res; 
+	 }
+
+	@Override
+	public AttachFileRes attachFile(AttachFileReq bean) {
+		AttachFileRes response = new AttachFileRes();
+		List<AttachFileRes1> resList = new ArrayList<AttachFileRes1>(); 
+		List<Tuple> list=null;
+		try {
+			
+			if("C".equals(bean.getPlacementMode())) {
+				list=GetPlacementBouquet(bean.getBranchCode(),bean.getBrokerId(),bean.getBouquetNo(),bean.getReinsurerId(),bean.getBaseProposalNo());
+			}
+			else {
+				list=GetPlacementEdit(bean.getBranchCode(),bean.getBrokerId(),bean.getEproposalNo(),bean.getReinsurerId())	;					
+			}
+			
+			if(!CollectionUtils.isEmpty(list)) {
+				for(int  i=0;i<list.size();i++) {
+					Tuple  map=list.get(i);
+					AttachFileRes1 res = new AttachFileRes1();
+					res.setSno(map.get("SNO")==null?"":map.get("SNO").toString());
+					res.setBouquetNo(map.get("BOUQUET_NO")==null?"":map.get("BOUQUET_NO").toString());
+					res.setBaseProposalNo(map.get("BASE_PROPOSAL_NO")==null?"":map.get("BASE_PROPOSAL_NO").toString());
+					res.setBrokerId(map.get("BROKER_ID")==null?"":map.get("BROKER_ID").toString());
+					res.setReinsurerId(map.get("REINSURER_ID")==null?"":map.get("REINSURER_ID").toString());
+					res.setEproposalNo(map.get("PROPOSAL_NO")==null?"":map.get("PROPOSAL_NO").toString());
+					resList.add(res);
+					//	insertDocdetails(bean);
+					}
+			}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+	private List<Tuple> GetPlacementBouquet(String branchCode, String brokerId, String bouquetNo, String reinsurerId,String baseProposalNo ) {
+		List<Tuple> list=null;
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<TtrnRiPlacement> pm = query.from(TtrnRiPlacement.class);
+			
+			//cedingCompanyName
+			Subquery<String> cedingCompanyName = query.subquery(String.class); 
+			Root<PersonalInfo> personal = cedingCompanyName.from(PersonalInfo.class);
+			cedingCompanyName.select(personal.get("companyName"));
+			Predicate b1 = cb.equal( pm.get("cedingCompanyId"), personal.get("customerId"));
+			Predicate b2 = cb.equal( pm.get("branchCode"), personal.get("branchCode"));
+			Predicate b3 = cb.equal( personal.get("customerType"), "C");
+			cedingCompanyName.where(b1,b2,b3);
+			
+			//reinsurerName
+			Subquery<String> reinsurerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi = reinsurerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName1 = cb.concat(pi.get("firstName"), " ");
+			reinsurerName.select(cb.concat(firstName1, pi.get("lastName")));
+			//maxAmend
+			Subquery<Long> maxAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis = maxAmend.from(PersonalInfo.class);
+			maxAmend.select(cb.max(pis.get("amendId")));
+			Predicate c1 = cb.equal( pis.get("customerId"), pi.get("customerId"));
+			maxAmend.where(c1);
+			
+			Predicate d1 = cb.equal( pi.get("customerType"), "R");
+			Predicate d2 = cb.equal( pi.get("customerId"), pm.get("reinsurerId"));
+			Predicate d3 = cb.equal( pi.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi.get("amendId"), maxAmend);
+			reinsurerName.where(d1,d2,d3,d4);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			//maxAmend
+			Subquery<Long> bAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = bAmend.from(PersonalInfo.class);
+			bAmend.select(cb.max(pis1.get("amendId")));
+			Predicate f1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			bAmend.where(f1);
+			
+			Predicate e1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate e2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate e3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate e4 = cb.equal( pi1.get("amendId"), bAmend);
+			brokerName.where(e1,e2,e3,e4);
+			
+			//mailStatus
+			Subquery<String> mailStatus = query.subquery(String.class); 
+			Root<MailNotificationDetail> mail = mailStatus.from(MailNotificationDetail.class);
+			mailStatus.select(mail.get("mailStatus"));
+			Predicate g1 = cb.equal( pm.get("proposalNo"), mail.get("proposalNo"));
+			Predicate g2 = cb.equal( pm.get("reinsurerId"), mail.get("reinsurerId"));
+			Predicate g3 = cb.equal(pm.get("brokerId"), mail.get("brokerId"));
+			Predicate g4 = cb.equal(pm.get("status"), mail.get("mailType"));
+			mailStatus.where(g1,g2,g3,g4);
+
+			query.multiselect(pm.get("baseProposalNo").alias("BASE_PROPOSAL_NO"),pm.get("sno").alias("SNO"),
+					pm.get("bouquetNo").alias("BOUQUET_NO"),pm.get("proposalNo").alias("PROPOSAL_NO"),
+					pm.get("cedingCompanyId").alias("CEDING_COMPANY_ID"),cedingCompanyName.alias("CEDING_COMPANY_NAME"),
+					pm.get("reinsurerId").alias("REINSURER_ID"),pm.get("brokerId").alias("BROKER_ID"),
+					reinsurerName.alias("REINSURER_NAME"),brokerName.alias("BROKER_NAME"),
+					pm.get("shareOffered").alias("SHARE_OFFERED"),pm.get("shareWritten").alias("SHARE_WRITTEN"),
+					pm.get("shareProposalWritten").alias("SHARE_PROPOSAL_WRITTEN"),pm.get("shareSigned").alias("SHARE_SIGNED"),
+					pm.get("brokerage").alias("BROKERAGE_PER"),pm.get("status").alias("STATUS"),
+					pm.get("writtenLineValidity").alias("WRITTEN_LINE_VALIDITY"),pm.get("writtenLineRemarks").alias("WRITTEN_LINE_REMARKS"),
+					pm.get("shareLineValidity").alias("SHARE_LINE_VALIDITY"),pm.get("shareLineRemarks").alias("SHARE_LINE_REMARKS"),
+					pm.get("shareProposedSigned").alias("SHARE_PROPOSED_SIGNED"),mailStatus.alias("MAIL_STATUS"),
+					pm.get("contractNo").alias("CONTRACT_NO"),pm.get("layerNo").alias("LAYER_NO"),
+					pm.get("sectionNo").alias("SECTION_NO")); 
+					
+
+			// MAXAmend ID
+			Subquery<Long> amend = query.subquery(Long.class); 
+			Root<TtrnRiPlacement> pms = amend.from(TtrnRiPlacement.class);
+			amend.select(cb.max(pms.get("placementAmendId")));
+			Predicate a1 = cb.equal( pm.get("branchCode"), pms.get("branchCode"));
+			Predicate a2 = cb.equal( pm.get("proposalNo"), pms.get("proposalNo"));
+			Predicate a3 = cb.equal( pm.get("reinsurerId"), pms.get("reinsurerId"));
+			Predicate a4 = cb.equal( pm.get("brokerId"), pms.get("brokerId"));
+			amend.where(a1,a2,a3,a4);
+
+			Predicate n1 = cb.equal(pm.get("branchCode"), branchCode);
+			Predicate n3 = cb.equal(pm.get("reinsurerId"), reinsurerId);
+			Predicate n4 = cb.equal(pm.get("brokerId"), brokerId);
+			Predicate n5 = cb.equal(pm.get("placementAmendId"), amend);
+
+			if(StringUtils.isNotBlank(bouquetNo)) {
+				//GET_PLACEMENT_BOUQUET
+				Predicate n2 = cb.equal(pm.get("bouquetNo"), bouquetNo);
+				query.where(n1,n2,n3,n4,n5);
+			}else {
+				//GET_PLACEMENT_BASELAYER
+				Predicate n2 = cb.equal(pm.get("baseProposalNo"), baseProposalNo);
+				query.where(n1,n2,n3,n4,n5);
+			}
+			
+			TypedQuery<Tuple> res = em.createQuery(query);
+			list = res.getResultList();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return list;
+	}
+
+	@Override
+	public CommonResponse sendMail(SendMailReq bean) {
+		CommonResponse response = new CommonResponse();
+		try {
+			MailMaster mapt= getMailDetails("51"); //new CommonDAO()
+			String hostName=mapt.getSmtpHost();
+			String user = mapt.getSmtpUser();
+			String pwd = mapt.getSmtpPwd();
+			String port=mapt.getSmtpPort();
+			String mailform = mapt.getSmtpAddress();
+			String shortAddress = mapt.getSmtpShortAddress();
+			String subject = bean.getMailSubject();
+			String toAddress = bean.getMailTo();
+			String ccAddress = bean.getMailCC();
+			String mailBody= bean.getMailBody()+"<br/>"+bean.getMailRemarks()+""+bean.getMailRegards();
+			bean.setMailBody(mailBody);
+			if(toAddress!=null && !"".equals(toAddress)){
+				String[] toAddresses = (toAddress.indexOf(",")!=-1)?toAddress.split(","):new String[]{toAddress};
+				String[] ccAddresses = new String[0];
+				if(ccAddress!=null && !"".equals(ccAddress)){
+					ccAddresses = (ccAddress.indexOf(",")!=-1)?ccAddress.split(","):new String[]{ccAddress};
+				}
+		//	insertMailDetails(bean);
+			Multipart multipart=GetMailAttachment(bean);
+			String status=sendResponseMail(hostName, user, pwd, mailform, subject, multipart, toAddresses, ccAddresses, shortAddress,port);
+			if("Success".equals(status) && "P".equals(bean.getMailType())) {
+			//	updateStatus(bean,"P"); status = "P"
+			}
+	//		updateMailDetails(bean,status);
+			} 
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+	public MailMaster getMailDetails(String appId){
+		MailMaster details =new MailMaster();
+    	try {
+    		//GET_MAIL_DETAILS
+    		List<MailMaster> list = mmRepo.findByAppId(appId);
+        	if(list != null && list.size()>0){
+	        	details = list.get(0);
+        	}
+        }catch(Exception e){
+        	e.printStackTrace();
+        	}
+    
+    	return details;
+  }
+	
+	private Multipart GetMailAttachment(SendMailReq bean) {
+		Multipart multipart = new MimeMultipart();
+		try {
+			BodyPart messageBodyPart1 = new MimeBodyPart();
+			messageBodyPart1.setContent(bean.getMailBody(),"text/html;charset=UTF-8");
+			multipart.addBodyPart(messageBodyPart1);
+			GetExistingAttachListReq req = new GetExistingAttachListReq();
+			req.setBranchCode(bean.getBranchCode());
+			req.setBrokerId(bean.getBrokerId());
+			req.setCorresId(bean.getCorresId());
+			req.setEproposalNo(bean.getEproposalNo());
+			req.setProposalNo(bean.getProposalNo());
+			req.setReinsurerId(bean.getReinsurerId());
+			
+			List<GetExistingAttachListRes1>  list=getExistingAttachList(req).getCommonResponse();
+			if(!CollectionUtils.isEmpty(list)) {
+				for(int i=0;i<list.size();i++) {
+					GetExistingAttachListRes1 map=list.get(i);
+					BodyPart messageBodyPart = new MimeBodyPart();
+//					String filePath=ServletActionContext.getServletContext().getRealPath("/")+"documents/";
+//					String fileName=map.getOrgFileName()==null?"":map.getOrgFileName().toString();
+//					String orgfileName=map.getOurFileName()==null?"":map.getOurFileName().toString();
+//					if(fileName!=null ){
+//						DataSource source = new FileDataSource(filePath+orgfileName);
+//						messageBodyPart.setDataHandler(new DataHandler(source));
+//						messageBodyPart.setFileName(fileName);
+//						multipart.addBodyPart(messageBodyPart);
+//					 }
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return multipart;
+	}
+
+	public String sendResponseMail(final String SMTP_HOST_NAME, final String user,  final String pwd, final String SMTP_MAIL_FROM, final String subject,
+    		final Multipart message, final String[] toAddress, final String[] ccAddress, final String SMTP_SHORT_ADDRESS,final String SMTP_PORT){
+    	
+    	 String status="";
+    	SMTP_AUTH_USER = user;
+    	SMTP_AUTH_PWD = pwd;
+    	try{
+    		
+    		 Properties props = System.getProperties();
+    		 props.setProperty("mail.smtp.host", SMTP_HOST_NAME);
+    		 props.put("mail.smtp.port", SMTP_PORT);
+    		 props.put("mail.smtp.starttls.enable", "true");
+    		 props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+    		 props.put("mail.debug", "true");
+	    	
+			Session session = null; 
+			if(SMTP_AUTH_PWD != null && !"".equals(SMTP_AUTH_PWD.trim())){
+				props.put("mail.smtp.auth", "true");
+				Authenticator auth = new SMTPAuthenticator();
+				session = Session.getInstance(props, auth);
+			}else{
+				props.put("mail.smtp.auth", "false");
+				session = Session.getInstance(props);
+			}
+			session.setDebug(false);
+			
+			Message msg1 = new MimeMessage(session);
+			
+			InternetAddress addressFrom = new InternetAddress(SMTP_MAIL_FROM, SMTP_SHORT_ADDRESS);
+			msg1.setFrom(addressFrom);
+			if(toAddress != null && toAddress.length>0){
+				InternetAddress[] addressTo = new InternetAddress[toAddress.length];			
+				for (int i = 0; i < toAddress.length; i++){
+					addressTo[i] = new InternetAddress(toAddress[i]);
+					msg1.addRecipient(Message.RecipientType.TO, addressTo[i]);
+				}
+			}
+			if(ccAddress != null && ccAddress.length>0){
+				InternetAddress[] addressToCC = new InternetAddress[ccAddress.length];			
+				for(int i=0;i<ccAddress.length;i++){
+					addressToCC[i] = new InternetAddress(ccAddress[i]);
+					msg1.addRecipient(Message.RecipientType.CC, addressToCC[i]);
+				}
+			}
+			msg1.setSubject(subject);
+				
+			msg1.setContent(message);
+			
+			System.out.println(msg1);
+			Transport transport = session.getTransport("smtp");
+            transport.connect(SMTP_HOST_NAME, Integer.parseInt(SMTP_PORT),SMTP_AUTH_USER, SMTP_AUTH_PWD);
+            transport.sendMessage(msg1, msg1.getAllRecipients());
+			status="Success";
+			System.out.println("Mail successfully sent");
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+			System.out.println("Mail successfully Not Senrsent");
+			status="Failed";
+		}
+    	return status;
+    }
+	 private class SMTPAuthenticator extends javax.mail.Authenticator{
+			public PasswordAuthentication getPasswordAuthentication(){
+				String username = SMTP_AUTH_USER;
+				String password = SMTP_AUTH_PWD;
+				return new PasswordAuthentication(username, password);
+			}
+	}
+	@Override
+	public InsertMailDetailsRes insertMailDetails(InsertMailDetailsReq bean) {
+		InsertMailDetailsRes response = new InsertMailDetailsRes();
+		List<InsertMailDetailsRes1> resList = new ArrayList<InsertMailDetailsRes1>();
+		List<Tuple>list=null;
+		try {
+			//INSERT_MAIL_NOTIFICATION
+			if("C".equals(bean.getPlacementMode())) {
+				list=GetPlacementBouquet(bean.getBranchCode(),bean.getBrokerId(),bean.getBouquetNo(),bean.getReinsurerId(),bean.getBaseProposalNo());
+			}
+			else {
+				list=GetPlacementEdit(bean.getBranchCode(),bean.getBrokerId(),bean.getEproposalNo(),bean.getReinsurerId());
+			}
+			
+			if(!CollectionUtils.isEmpty(list)) {
+				for(int  i=0;i<list.size();i++) {
+					Tuple map=list.get(i);
+					InsertMailDetailsRes1 res = new InsertMailDetailsRes1();
+					res.setSno(map.get("SNO")==null?"":map.get("SNO").toString());
+					res.setBouquetNo(map.get("BOUQUET_NO")==null?"":map.get("BOUQUET_NO").toString());
+					res.setBaseProposalNo(map.get("BASE_PROPOSAL_NO")==null?"":map.get("BASE_PROPOSAL_NO").toString());
+					res.setBrokerId(map.get("BROKER_ID")==null?"":map.get("BROKER_ID").toString());
+					res.setReinsurerId(map.get("REINSURER_ID")==null?"":map.get("REINSURER_ID").toString());
+					res.setEproposalNo(map.get("PROPOSAL_NO")==null?"":map.get("PROPOSAL_NO").toString());
+					resList.add(res);
+					String recNo ="";
+					List<Map<String,Object>> list1  = queryImpl.selectSingle("select MAIL_RECORD_SEQ.NEXTVAL NEXTVAL from dual", new String[] {});
+					if (!CollectionUtils.isEmpty(list1)) {
+						recNo = list1.get(0).get("NEXTVAL") == null ? "" : list1.get(0).get("NEXTVAL").toString();
+					}
+					
+					MailNotificationDetail entity = new MailNotificationDetail();
+					entity.setMailRecordNo(new BigDecimal(recNo));
+					entity.setSno(new BigDecimal(res.getSno()));
+					entity.setBouquetNo(new BigDecimal(res.getBouquetNo()));
+					entity.setBaseProposalNo(new BigDecimal(res.getBaseProposalNo()));
+					entity.setProposalNo(new BigDecimal(res.getEproposalNo()));
+					entity.setContractNo(map.get("CONTRACT_NO")==null?BigDecimal.ZERO:new BigDecimal(map.get("CONTRACT_NO").toString()));;
+					entity.setLayerNo(map.get("LAYER_NO")==null?BigDecimal.ZERO:new BigDecimal(map.get("LAYER_NO").toString()));
+					entity.setSectionNo(map.get("SECTION_NO")==null?BigDecimal.ZERO:new BigDecimal(map.get("SECTION_NO").toString()));
+					entity.setCedingCompanyId(map.get("CEDING_COMPANY_ID")==null?"":map.get("CEDING_COMPANY_ID").toString());
+					entity.setReinsurerId(res.getReinsurerId());
+					entity.setBrokerId(res.getBrokerId());
+					entity.setClientId("63".equals(res.getBrokerId())?res.getReinsurerId():res.getBrokerId());
+					entity.setMailType(bean.getMailType());
+					entity.setMailTo(bean.getMailTo());
+					entity.setMailCc(bean.getMailCC());
+					entity.setMailSubject(bean.getMailSubject());
+					entity.setMailBody(bean.getMailBody());
+					entity.setBranchCode(bean.getBranchCode());
+					entity.setUserId(bean.getUserId());
+					entity.setEntryDate(new Date());
+					entity.setMailStatus("Pending");;
+					mailnotiRepo.saveAndFlush(entity);
+					}
+			}
+			response.setCommonResponse(resList);
+			response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+   
+	@Transactional
+	@Override
+	public CommonResponse updateMailDetails(UpdateMailDetailsReq bean) {
+		CommonResponse response = new CommonResponse();
+		try {
+		for(int i=0;i<bean.getUpdateMailDetailsReqList().size();i++) {
+			UpdateMailDetailsReq1 req = bean.getUpdateMailDetailsReqList().get(i);
+			//UPDATE_MAIL_NOTIFICATION
+			MailNotificationDetail entity = mailnotiRepo.findByProposalNoAndReinsurerIdAndBrokerIdAndBranchCode(
+					new BigDecimal(req.getProposalNo()),req.getReinsurerId(),req.getBrokerId(),bean.getBranchCode());
+			entity.setMailStatus(bean.getStatus());
+			entity.setUpdateDate(new Date());;
+			entity.setStatusNo(bean.getStatusNo());
+			mailnotiRepo.saveAndFlush(entity);
+			
+			//UPDATE_PLACEMENT_STATUS
+			CriteriaBuilder cb = this.em.getCriteriaBuilder();
+			// create update
+			CriteriaUpdate<TtrnRiPlacement> update = cb.createCriteriaUpdate(TtrnRiPlacement.class);
+			// set the root class
+			Root<TtrnRiPlacement> m = update.from(TtrnRiPlacement.class);
+			// set update and where clause
+			update.set("status", bean.getMailType());
+			update.set("statusNo",new BigDecimal(bean.getStatusNo()));
+			
+			// MAXAmend ID
+			Subquery<Long> amend = update.subquery(Long.class); 
+			Root<TtrnRiPlacement> pms = amend.from(TtrnRiPlacement.class);
+			amend.select(cb.max(pms.get("placementAmendId")));
+			Predicate a1 = cb.equal( m.get("branchCode"), pms.get("branchCode"));
+			Predicate a2 = cb.equal( m.get("proposalNo"), pms.get("proposalNo"));
+			Predicate a3 = cb.equal( m.get("reinsurerId"), pms.get("reinsurerId"));
+			Predicate a4 = cb.equal( m.get("brokerId"), pms.get("brokerId"));
+			amend.where(a1,a2,a3,a4);
+			
+			Predicate n1 = cb.equal(m.get("proposalNo"), req.getProposalNo());
+			Predicate n2 = cb.equal(m.get("reinsurerId"), req.getReinsurerId());
+			Predicate n3 = cb.equal(m.get("brokerId"),req.getBrokerId());
+			Predicate n4 = cb.equal(m.get("branchCode"), bean.getBranchCode());
+			Predicate n5 = cb.equal(m.get("placementAmendId"), amend);
+			update.where(n1,n2,n3,n4,n5);
+			// perform update
+			em.createQuery(update).executeUpdate();
+
+			//UPDATE_ATTACHMENT_MAIL	
+			CriteriaUpdate<NotificationAttachmentDetail> update1 = cb.createCriteriaUpdate(NotificationAttachmentDetail.class);
+			Root<NotificationAttachmentDetail> pm = update1.from(NotificationAttachmentDetail.class);
+			
+			// MAXAmend ID
+			Subquery<Long> mailRecordNo = update1.subquery(Long.class); 
+			Root<MailNotificationDetail> mr = mailRecordNo.from(MailNotificationDetail.class);
+			mailRecordNo.select(cb.max(mr.get("mailRecordNo")));
+			Predicate b2 = cb.equal( pm.get("proposalNo"), mr.get("proposalNo"));
+			Predicate b3 = cb.equal( pm.get("reinsurerId"), mr.get("reinsurerId"));
+			Predicate b4 = cb.equal( pm.get("brokerId"), mr.get("brokerId"));
+			mailRecordNo.where(b2,b3,b4);
+			
+			update1.set("mailRecordNo",mailRecordNo==null?null:mailRecordNo);
+			update1.set("statusNo", new BigDecimal( bean.getStatusNo()));
+			
+			Predicate m1 = cb.equal(pm.get("proposalNo"), req.getProposalNo());
+			Predicate m2 = cb.equal(pm.get("reinsurerId"), req.getReinsurerId());
+			Predicate m3 = cb.equal(pm.get("brokerId"),req.getBrokerId());
+			Predicate m4 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			update1.where(m1,m2,m3,m4);
+			em.createQuery(update1).executeUpdate();
+			
+			//UPDATE_PLACEMENT_STATUS_MAIL
+			CriteriaUpdate<TtrnRiPlacementStatus> update2 = cb.createCriteriaUpdate(TtrnRiPlacementStatus.class);
+			Root<TtrnRiPlacementStatus> ri = update2.from(TtrnRiPlacementStatus.class);
+			
+			// mailRecordNo
+			Subquery<Long> mailRecordNo1 = update2.subquery(Long.class); 
+			Root<MailNotificationDetail> mr1 = mailRecordNo1.from(MailNotificationDetail.class);
+			mailRecordNo1.select(cb.max(mr1.get("mailRecordNo")));
+			Predicate c2 = cb.equal( ri.get("proposalNo"), mr1.get("proposalNo"));
+			Predicate c3 = cb.equal( ri.get("reinsurerId"), mr1.get("reinsurerId"));
+			Predicate c4 = cb.equal( ri.get("brokerId"), mr1.get("brokerId"));
+			mailRecordNo1.where(c2,c3,c4);
+			
+			update2.set("emailRecordid", mailRecordNo1==null?null:mailRecordNo1);
+			
+			//statusNo
+			Subquery<Long> statusNo = update2.subquery(Long.class); 
+			Root<TtrnRiPlacementStatus> ris = statusNo.from(TtrnRiPlacementStatus.class);
+			statusNo.select(cb.max(ris.get("statusNo")));
+			Predicate e1 = cb.equal( ri.get("branchCode"), ris.get("branchCode"));
+			Predicate e2 = cb.equal( ri.get("proposalNo"), ris.get("proposalNo"));
+			Predicate e3 = cb.equal( ri.get("reinsurerId"), ris.get("reinsurerId"));
+			Predicate e4 = cb.equal( ri.get("brokerId"), ris.get("brokerId"));
+			statusNo.where(e1,e2,e3,e4);
+			
+			Predicate d1 = cb.equal(ri.get("proposalNo"), req.getProposalNo());
+			Predicate d2 = cb.equal(ri.get("reinsurerId"), req.getReinsurerId());
+			Predicate d3 = cb.equal(ri.get("brokerId"),req.getBrokerId());
+			Predicate d4 = cb.equal(ri.get("branchCode"), bean.getBranchCode());
+			Predicate d5 = cb.equal(ri.get("statusNo"), statusNo);
+			update2.where(d1,d2,d3,d4,d5);
+			em.createQuery(update2).executeUpdate();
+			
+		}
+		response.setMessage("Success");
+		response.setIsError(false);
+	}catch(Exception e){
+			log.error(e);
+			e.printStackTrace();
+			response.setMessage("Failed");
+			response.setIsError(true);
+		}
+	return response;
+	}
+
+	@Transactional
+	@Override
+	public CommonSaveRes deleteFile(DeleteFileReq req) {
+		CommonSaveRes response = new CommonSaveRes();
+		try {
+		//DELETE_ATTACHED_FILE
+		 notiRepo.deleteByDocIdAndOrgFileName(new BigDecimal(req.getDocId()), req.getFileName());
+		    response.setResponse("");
+		    response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public CommonSaveRes downloadFile(DeleteFileReq req) {
+		CommonSaveRes response = new CommonSaveRes();
+		String result="";
+		try {
+			//DOWNLOAD_ATTACHED_FILE
+			NotificationAttachmentDetail list =  notiRepo.findByDocIdAndOrgFileName(new BigDecimal(req.getDocId()), req.getFileName());
+			if(list!=null) {
+				result = list.getOurFileName();
+			}
+			response.setResponse(result);
+		    response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public GetPlacementViewListRes getPlacementViewList(GetPlacementViewListReq bean) {
+		GetPlacementViewListRes response = new GetPlacementViewListRes();
+		List<GetPlacementViewListRes1> resList = new ArrayList<GetPlacementViewListRes1>();
+		try {
+			//GET_PLACEMENT_VIEW
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			
+			Root<TtrnRiPlacementStatus> pm = query.from(TtrnRiPlacementStatus.class);
+			
+			//reinsurerName
+			Subquery<String> reinsurerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi = reinsurerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName1 = cb.concat(pi.get("firstName"), " ");
+			reinsurerName.select(cb.concat(firstName1, pi.get("lastName")));
+			//maxAmend
+			Subquery<Long> maxAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis = maxAmend.from(PersonalInfo.class);
+			maxAmend.select(cb.max(pis.get("amendId")));
+			Predicate c1 = cb.equal( pis.get("customerId"), pi.get("customerId"));
+			maxAmend.where(c1);
+			
+			Predicate d1 = cb.equal( pi.get("customerType"), "R");
+			Predicate d2 = cb.equal( pi.get("customerId"), pm.get("reinsurerId"));
+			Predicate d3 = cb.equal( pi.get("branchCode"), pm.get("branchCode"));
+			Predicate d4 = cb.equal( pi.get("amendId"), maxAmend);
+			reinsurerName.where(d1,d2,d3,d4);
+			
+			//brokerName
+			Subquery<String> brokerName = query.subquery(String.class); 
+			Root<PersonalInfo> pi1 = brokerName.from(PersonalInfo.class);
+		
+			Expression<String> firstName = cb.concat(pi1.get("firstName"), " ");
+			brokerName.select(cb.concat(firstName, pi1.get("lastName")));
+			//maxAmend
+			Subquery<Long> bAmend = query.subquery(Long.class); 
+			Root<PersonalInfo> pis1 = bAmend.from(PersonalInfo.class);
+			bAmend.select(cb.max(pis1.get("amendId")));
+			Predicate f1 = cb.equal( pis1.get("customerId"), pi1.get("customerId"));
+			bAmend.where(f1);
+			
+			Predicate e1 = cb.equal( pi1.get("customerType"), "B");
+			Predicate e2 = cb.equal( pi1.get("customerId"), pm.get("brokerId"));
+			Predicate e3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
+			Predicate e4 = cb.equal( pi1.get("amendId"), bAmend);
+			brokerName.where(e1,e2,e3,e4);
+			
+			//currentStatus
+			Subquery<String> currentStatus = query.subquery(String.class); 
+			Root<StatusMaster> mail = currentStatus.from(StatusMaster.class);
+			currentStatus.select(mail.get("statusName"));
+			Predicate g1 = cb.equal( pm.get("currentStatus"), mail.get("statusCode"));
+			Predicate g2 = cb.equal( pm.get("branchCode"), mail.get("branchCode"));
+			currentStatus.where(g1,g2);
+			
+			//newStatus
+			Subquery<String> newStatus = query.subquery(String.class); 
+			Root<StatusMaster> mail1 = newStatus.from(StatusMaster.class);
+			newStatus.select(mail1.get("statusName"));
+			Predicate h1 = cb.equal( pm.get("newStatus"), mail1.get("statusCode"));
+			Predicate h2 = cb.equal( pm.get("branchCode"), mail1.get("branchCode"));
+			newStatus.where(h1,h2);
+			
+			//emailBy
+			Subquery<String> emailBy = query.subquery(String.class); 
+			Root<ConstantDetail> email = emailBy.from(ConstantDetail.class);
+			emailBy.select(email.get("detailName"));
+			Predicate j1 = cb.equal( email.get("categoryId"), "55");
+			Predicate j2 = cb.equal( email.get("type"), pm.get("emailBy"));
+			emailBy.where(j1,j2);
+
+			query.multiselect(pm.get("baseProposalNo").alias("BASE_PROPOSAL_NO"),pm.get("sno").alias("SNO"),
+					pm.get("bouquetNo").alias("BOUQUET_NO"),pm.get("proposalNo").alias("PROPOSAL_NO"),
+					pm.get("reinsurerId").alias("REINSURER_ID"),pm.get("brokerId").alias("BROKER_ID"),
+					reinsurerName.alias("REINSURER_NAME"),brokerName.alias("BROKER_NAME"), currentStatus.alias("CURRENT_STATUS"),
+					newStatus.alias("NEW_STATUS"),pm.get("updateDate").alias("UPDATE_DATE"),
+					emailBy.alias("EMAIL_BY"),pm.get("newStatus").alias("STATUS"),
+					pm.get("correspondentId").alias("CORRESPONDENT_ID")); 
+
+			
+			List<Order> orderList = new ArrayList<Order>();
+			orderList.add(cb.desc(pm.get("amendId")));
+
+			Predicate n1 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			Predicate n2 = cb.equal(pm.get("proposalNo"), bean.getEproposalNo());
+			Predicate n3 = cb.equal(pm.get("reinsurerId"), bean.getReinsurerId());
+			Predicate n4 = cb.equal(pm.get("brokerId"), bean.getBrokerId());
+			query.where(n1,n2,n3,n4).orderBy(orderList);
+			
+			TypedQuery<Tuple> result = em.createQuery(query);
+			List<Tuple> list = result.getResultList();
+			if(list.size()>0) {
+				for(Tuple map: list) {
+					GetPlacementViewListRes1 res = new GetPlacementViewListRes1();
+					res.setSno(map.get("SNO")==null?"":map.get("SNO").toString());
+					res.setBouquetNo(map.get("BOUQUET_NO")==null?"":map.get("BOUQUET_NO").toString());
+					res.setBaseProposalNo(map.get("BASE_PROPOSAL_NO")==null?"":map.get("BASE_PROPOSAL_NO").toString());
+					res.setBrokerId(map.get("BROKER_ID")==null?"":map.get("BROKER_ID").toString());
+					res.setReinsurerId(map.get("REINSURER_ID")==null?"":map.get("REINSURER_ID").toString());
+					res.setProposalNo(map.get("PROPOSAL_NO")==null?"":map.get("PROPOSAL_NO").toString());
+					res.setBrokerName(map.get("BROKER_NAME")==null?"":map.get("BROKER_NAME").toString());
+					res.setCorrespondentId(map.get("CORRESPONDENT_ID")==null?"":map.get("CORRESPONDENT_ID").toString());
+					res.setCurrentStatus(map.get("CURRENT_STATUS")==null?"":map.get("CURRENT_STATUS").toString());
+					res.setEmailBy(map.get("EMAIL_BY")==null?"":map.get("EMAIL_BY").toString());
+					res.setNewStatus(map.get("NEW_STATUS")==null?"":map.get("NEW_STATUS").toString());
+					res.setReinsurerName(map.get("REINSURER_NAME")==null?"":map.get("REINSURER_NAME").toString());
+					res.setStatus(map.get("STATUS")==null?"":map.get("STATUS").toString());
+					res.setUpdateDate(map.get("UPDATE_DATE")==null?"":map.get("UPDATE_DATE").toString());
+					resList.add(res);
+				}
+			}
+			response.setCommonResponse(resList);
+		    response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+	@Override
+	public GetPlacementViewRes getPlacementView(GetPlacementViewReq bean) {
+		GetPlacementViewRes response = new GetPlacementViewRes();
+		try {
+			//GET_PLACEMENT_STATUS_VIEW
+			CriteriaBuilder cb = em.getCriteriaBuilder(); 
+			CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class); 
+			Root<TtrnRiPlacementStatus> pm = query.from(TtrnRiPlacementStatus.class);
+			query.multiselect(pm.get("amendId").alias("AMEND_ID"),pm.get("emailBy").alias("EMAIL_BY"),
+					pm.get("currentStatus").alias("CURRENT_STATUS"),pm.get("proposalNo").alias("PROPOSAL_NO"),
+					pm.get("reinsurerId").alias("REINSURER_ID"),pm.get("brokerId").alias("BROKER_ID"),
+					pm.get("cedentCorrespondence").alias("CEDENT_CORRESPONDENCE"),pm.get("updateDate").alias("UPDATE_DATE"),
+					pm.get("newStatus").alias("NEW_STATUS"),pm.get("tqrCorrespondence").alias("TQR_CORRESPONDENCE"),
+					pm.get("reinsurerCorrespondence").alias("REINSURER_CORRESPONDENCE")); 
+		
+			Predicate n1 = cb.equal(pm.get("branchCode"), bean.getBranchCode());
+			Predicate n2 = cb.equal(pm.get("proposalNo"), bean.getEproposalNo());
+			Predicate n3 = cb.equal(pm.get("reinsurerId"), bean.getReinsurerId());
+			Predicate n4 = cb.equal(pm.get("brokerId"), bean.getBrokerId());
+			Predicate n5 = cb.equal(pm.get("newStatus"), bean.getNewStatus());
+			query.where(n1,n2,n3,n4,n5);
+			
+			TypedQuery<Tuple> result = em.createQuery(query);
+			List<Tuple> list = result.getResultList();
+			
+			if(!CollectionUtils.isEmpty(list)) {
+				Tuple map=list.get(0);
+				GetPlacementViewRes1 res = new GetPlacementViewRes1();
+				res.setEmailBy(map.get("EMAIL_BY")==null?"":map.get("EMAIL_BY").toString());
+				res.setCurrentStatus(map.get("NEW_STATUS")==null?"":map.get("NEW_STATUS").toString());
+				res.setCedentCorrespondent(map.get("CEDENT_CORRESPONDENCE")==null?"":map.get("CEDENT_CORRESPONDENCE").toString());
+				res.setReinsurerCorrespondent(map.get("REINSURER_CORRESPONDENCE")==null?"":map.get("REINSURER_CORRESPONDENCE").toString());
+				res.setTqrCorrespondent(map.get("TQR_CORRESPONDENCE")==null?"":map.get("TQR_CORRESPONDENCE").toString());
+				res.setUpdateDate(map.get("UPDATE_DATE")==null?"":map.get("UPDATE_DATE").toString());
+				response.setCommonResponse(res);
+			}
+			
+		    response.setMessage("Success");
+			response.setIsError(false);
+		}catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+		return response;
+	}
+
+
+	
+	}

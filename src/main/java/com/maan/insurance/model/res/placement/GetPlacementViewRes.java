@@ -4,15 +4,15 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.maan.insurance.error.ErrorCheck;
-import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes;
-import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes1;
+import com.maan.insurance.model.req.placement.GetPlacementViewListReq;
+import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes1;
 
 import lombok.Data;
 
 @Data
-public class EditPlacingDetailsRes {
+public class GetPlacementViewRes {
 	@JsonProperty("Result")
-	private EditPlacingDetailsResponse commonResponse;
+	private GetPlacementViewRes1 commonResponse;
 	
 	@JsonProperty("Message")
 	private String message;

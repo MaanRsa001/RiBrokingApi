@@ -42,6 +42,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.view.xslt.XsltView;
 
 import com.maan.insurance.controller.propPremium.ViewPremiumDetailsRIRes1;
+import com.maan.insurance.model.entity.ConstantDetail;
 import com.maan.insurance.model.entity.CurrencyMaster;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.PositionMaster;
@@ -49,6 +50,7 @@ import com.maan.insurance.model.entity.RskPremiumDetails;
 import com.maan.insurance.model.entity.RskPremiumDetailsRi;
 import com.maan.insurance.model.entity.RskPremiumDetailsTemp;
 import com.maan.insurance.model.entity.TmasBranchMaster;
+import com.maan.insurance.model.entity.TmasDepartmentMaster;
 import com.maan.insurance.model.repository.RskPremiumDetailsRIRepository;
 import com.maan.insurance.model.repository.RskPremiumDetailsRepository;
 import com.maan.insurance.model.repository.RskPremiumDetailsTempRepository;
@@ -3605,10 +3607,30 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			Predicate d3 = cb.equal( pi1.get("branchCode"), pm.get("branchCode"));
 			Predicate d4 = cb.equal( pi1.get("amendId"), maxAmend1);
 			brokerName.where(d1,d2,d3,d4);
+			
+			//ACCOUNT_PERIOD_QTR
+			Subquery<String> act = query.subquery(String.class); 
+			Root<ConstantDetail> name = act.from(ConstantDetail.class);
+			act.select(name.get("detailName"));
+			Predicate j1 = cb.equal( name.get("categoryId"), "49");
+			Predicate j2 = cb.equal( name.get("type"), pm.get("accountPeriodQtr")); //
+			act.where(j1,j2);
+			
+			//TMAS_DEPARTMENT_NAME
+			Subquery<String> dept = query.subquery(String.class); 
+			Root<TmasDepartmentMaster> dname = dept.from(TmasDepartmentMaster.class);
+			dept.select(dname.get("tmasDepartmentName"));
+			Predicate k1 = cb.equal( dname.get("tmasDepartmentId"), pm.get("premiumClass"));
+			Predicate k2 = cb.equal( dname.get("branchCode"), pm.get("branchCode"));
+			Predicate k3 = cb.equal( dname.get("tmasProductId"), req.getProductId());
+			Predicate k4 = cb.equal( dname.get("tmasStatus"), "Y");
+			dept.where(k1,k2,k3,k4);
 
 			query.multiselect(reInsurerName.alias("REINSURER_NAME"),brokerName.alias("BROKER_NAME"),
 					pm.get("brokerId").alias("BROKER_ID"),pm.get("brokerage").alias("BROKERAGE"),
-					pm.get("signShared").alias("SIGN_SHARED"),pm.get("reinsurerId").alias("REINSURER_ID"),pm.alias("table")); 
+					pm.get("signShared").alias("SIGN_SHARED"),pm.get("reinsurerId").alias("REINSURER_ID"),
+					act.alias("ACCOUNT_PERIOD_QTR"),dept.alias("TMAS_DEPARTMENT_NAME"),pm.alias("table")
+					); 
 			
 			Predicate n1 = cb.equal(pm.get("contractNo"), req.getContractNo());
 			Predicate n2 = cb.equal(pm.get("transactionNo"), req.getTransactionNo());
@@ -3628,6 +3650,8 @@ public class PropPremiumServiceImple implements PropPremiumService {
 					res.setReinsurerId(data1.get("REINSURER_ID")==null?"":data1.get("REINSURER_ID").toString());
 					res.setReInsurerName(data1.get("REINSURER_NAME")==null?"":data1.get("REINSURER_NAME").toString());
 					res.setSignShared(data1.get("SIGN_SHARED")==null?"":data1.get("SIGN_SHARED").toString());	
+					res.setAccountPeriod(data1.get("ACCOUNT_PERIOD_QTR")==null?"":data1.get("ACCOUNT_PERIOD_QTR").toString());
+					res.setPremiumClass(data1.get("TMAS_DEPARTMENT_NAME")==null?"":data1.get("TMAS_DEPARTMENT_NAME").toString());
 					
 					res.setContNo(data.getContractNo()==null?"":data.getContractNo().toString());
 					res.setTransactionNo(data.getTransactionNo()==null?"":data.getTransactionNo().toString());
@@ -3655,10 +3679,16 @@ public class PropPremiumServiceImple implements PropPremiumService {
 					
 						res.setClaimsPaid(data.getClaimsPaidOc()==null?"":fm.formatter(data.getClaimsPaidOc().toString()));
 						res.setInceptionDate(data.getEntryDate()==null?"":sdf.format(data.getEntryDate()));
+
 						res.setXlCost(data.getXlCostOc()==null?"":fm.formatter(fm.formatter(data.getXlCostOc().toString())));
 						res.setCliamPortfolioOut(data.getClaimPortfolioOutOc()==null?"":fm.formatter(data.getClaimPortfolioOutOc().toString()));
 						res.setPremiumReserveReleased(data.getPremiumReserveRealsedOc()==null?"":fm.formatter(data.getPremiumReserveRealsedOc().toString()));
 						res.setAccountPeriod(data.getAccountPeriodQtr()==null?"":data.getAccountPeriodQtr().toString());
+
+						res.setXlCost(data.getXlCostOc()==null?"":dropDownImple.formatter(dropDownImple.formatter(data.getXlCostOc().toString())));
+						res.setCliamPortfolioOut(data.getClaimPortfolioOutOc()==null?"":dropDownImple.formatter(data.getClaimPortfolioOutOc().toString()));
+						res.setPremiumReserveReleased(data.getPremiumReserveRealsedOc()==null?"":dropDownImple.formatter(data.getPremiumReserveRealsedOc().toString()));
+
 						res.setAccountPeriodYear(data.getAccountPeriodYear()==null?"":data.getAccountPeriodYear().toString());
 						res.setCurrencyId(data.getCurrencyId()==null?"":data.getCurrencyId().toString());
 						res.setOtherCost(data.getOtherCostOc()==null?"":fm.formatter(data.getOtherCostOc().toString()));
@@ -3716,9 +3746,15 @@ public class PropPremiumServiceImple implements PropPremiumService {
 //						if(!"ALL".equalsIgnoreCase(res.getSubProfitId())){
 //						res.setSubProfitId(data.getPremiumSubclass()==null?"":data.getPremiumSubclass().toString());
 //						}
+
 						res.setExchRate(dropDownImple.exchRateFormat(data.getExchangeRate()==null?"":fm.formatter(data.getExchangeRate().toString())));
 						res.setStatementDate(data.getStatementDate()==null?"":data.getStatementDate().toString());
 						// res.setPremiumClass(data.getdeptempMap.get("TMAS_DEPARTMENT_NAME")==null?"":tempMap.get("TMAS_DEPARTMENT_NAME").toString());
+
+						res.setExchRate(dropDownImple.exchRateFormat(data.getExchangeRate()==null?"":dropDownImple.formatter(data.getExchangeRate().toString())));
+						res.setStatementDate(data.getStatementDate()==null?"":sdf.format(data.getStatementDate()));
+						
+
 //			                res.setPremiumSubClass(tempMap.get("SUB")==null?"":tempMap.get("SUB").toString());
 //			                if(!"ALL".equalsIgnoreCase(res.getPremiumSubClass())){
 //			                	res.setPremiumSubClass(tempMap.get("PREMIUM_SUBCLASS")==null?"":tempMap.get("PREMIUM_SUBCLASS").toString());

@@ -12,4 +12,6 @@ public class GetRIPremiumListReq {
 	
 	@JsonProperty("ContractNo")
 	private String contractNo;
+	@JsonProperty("ProductId")
+	private String productId;
 }

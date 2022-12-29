@@ -4,15 +4,13 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.maan.insurance.error.ErrorCheck;
-import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes;
-import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes1;
 
 import lombok.Data;
 
 @Data
-public class EditPlacingDetailsRes {
+public class InsertMailDetailsRes {
 	@JsonProperty("Result")
-	private EditPlacingDetailsResponse commonResponse;
+	private List<InsertMailDetailsRes1> commonResponse;
 	
 	@JsonProperty("Message")
 	private String message;

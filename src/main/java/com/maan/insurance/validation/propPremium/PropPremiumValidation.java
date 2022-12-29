@@ -972,6 +972,9 @@ public class PropPremiumValidation {
 		if (StringUtils.isBlank(req.getTransactionNo())) {
 			list.add(new ErrorCheck("Please Enter TransactionNo", "TransactionNo", "3"));
 		}
+		if (StringUtils.isBlank(req.getProductId())) {
+			list.add(new ErrorCheck("Please Enter ProductId", "ProductId", "4"));
+		}
 		return list;
 	}
 

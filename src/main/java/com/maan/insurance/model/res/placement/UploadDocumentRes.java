@@ -4,15 +4,15 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.maan.insurance.error.ErrorCheck;
-import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes;
-import com.maan.insurance.model.res.DropDown.GetBaseLayerExistingListRes1;
+import com.maan.insurance.model.req.placement.UploadDocumentReq1;
+import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes1;
 
 import lombok.Data;
 
 @Data
-public class EditPlacingDetailsRes {
+public class UploadDocumentRes {
 	@JsonProperty("Result")
-	private EditPlacingDetailsResponse commonResponse;
+	private List<UploadDocumentRes1> commonResponse;
 	
 	@JsonProperty("Message")
 	private String message;

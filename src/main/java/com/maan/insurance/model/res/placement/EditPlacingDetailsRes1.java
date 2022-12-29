@@ -11,42 +11,53 @@ import lombok.Data;
 
 @Data
 public class EditPlacingDetailsRes1 {
-	@JsonProperty("InsDate")
-	private String insDate; 
-	@JsonProperty("ExpDate")
-	private String expDate; 
-	@JsonProperty("CompanyName")
-	private String companyName; 
-	@JsonProperty("UwYear")
-	private String uwYear; 
-	@JsonProperty("UwYearTo")
-	private String uwYearTo; 
-	@JsonProperty("Treatytype")
-	private String treatytype; 
-	@JsonProperty("ProductId")
-	private String productId; 
-	@JsonProperty("BusinessType")
-	private String businessType; 
+	@JsonProperty("Sno")
+	private String sno; 
+	@JsonProperty("BaseproposalNo")
+	private String baseproposalNo; 
+	@JsonProperty("BouquetNo")
+	private String bouquetNo; 
+	@JsonProperty("ReinsurerId")
+	private String reinsurerId; 
+	@JsonProperty("ReinsurerName")
+	private String reinsurerName; 
+	@JsonProperty("BrokerName")
+	private String brokerName; 
+	@JsonProperty("CedingCompany")
+	private String cedingCompany; 
+	@JsonProperty("CedingCompanyName")
+	private String cedingCompanyName; 
+	@JsonProperty("BrokerId")
+	private String brokerId; 
 	@JsonProperty("ProposalNo")
 	private String proposalNo; 
-	@JsonProperty("TreatyType1")
-	private String treatyType1; 
-	@JsonProperty("RskTreatyid")
-	private String rskTreatyid; 
-	@JsonProperty("PolicyStatus")
-	private String policyStatus; 
-	@JsonProperty("ExistingShare")
-	private String existingShare; 
-	@JsonProperty("BaseLayer")
-	private String baseLayer; 
-	@JsonProperty("SectionNo")
-	private String sectionNo; 
-	@JsonProperty("LayerNo")
-	private String layerNo; 
-	@JsonProperty("TmasDepartmentName")
-	private String tmasDepartmentName; 
-	@JsonProperty("SubClass")
-	private String subClass; 
-	@JsonProperty("OfferNo")
-	private String offerNo ;
+	@JsonProperty("ShareOffered")
+	private String shareOffered; 
+	@JsonProperty("WrittenLine")
+	private String writtenLine; 
+	@JsonProperty("Brokerage")
+	private String brokerage; 
+	@JsonProperty("Writtenvaliditydate")
+	private String writtenvaliditydate; 
+	@JsonProperty("WrittenvalidityRemarks")
+	private String writtenvalidityRemarks; 
+	@JsonProperty("ProposedWL")
+	private String proposedWL; 
+	@JsonProperty("SignedLine")
+	private String signedLine; 
+	@JsonProperty("ProposedSL")
+	private String proposedSL; 
+	@JsonProperty("Reoffer")
+	private String reoffer ;
+	
+	@JsonProperty("TqrBrokerageAmt")
+	private String tqrBrokerageAmt; 
+	@JsonProperty("SignedLineValidity")
+	private String signedLineValidity; 
+	@JsonProperty("SignedLineRemarks")
+	private String signedLineRemarks; 
+	@JsonProperty("EmailStatus")
+	private String emailStatus; 
+	@JsonProperty("PsignedLine")
+	private String psignedLine ;
 }

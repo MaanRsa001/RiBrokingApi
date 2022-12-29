@@ -23,7 +23,6 @@ public class EditPlacingDetailsReq {
 	private String brokerId; 
 	@JsonProperty("SearchReinsurerId")
 	private String searchReinsurerId; 
-	
 	@JsonProperty("SearchBrokerId")
 	private String searchBrokerId; 
 	@JsonProperty("SearchStatus")
@@ -31,6 +30,7 @@ public class EditPlacingDetailsReq {
 	@JsonProperty("BouquetNo")
 	private String bouquetNo; 
 	@JsonProperty("BaseProposalNo")
-	private String baseProposalNo; 
-
+	private String baseProposalNo;  
+	@JsonProperty("NewStatus")
+	private String newStatus;
 }
