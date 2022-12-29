@@ -261,6 +261,7 @@ public class InsertPremiumReq {
 	private String m2oc;
 	@JsonProperty("M3OC")
 	private String m3oc;
+
 	
 	@JsonProperty("ClaimPaymentNo")
 	private String claimPaymentNo;
@@ -279,4 +280,10 @@ public class InsertPremiumReq {
 	
 	@JsonProperty("CashlossType")
 	private String cashlossType;
+
+	@JsonProperty("ChooseTransaction")
+	private String chooseTransaction;
+	@JsonProperty("TransDropDownVal")
+	private String transDropDownVal;
+
 }

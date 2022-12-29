@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.RskPremiumDetailsRi;
 import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
@@ -362,9 +363,9 @@ public MdInstallmentDatesRes mdInstallmentDates(MdInstallmentDatesReq req) {
 	    tempMap3.put("KEY1","RTP");	    
 	    tempMap3.put("VALUE","Return Premium");
 	    list.add(tempMap3);
-	    tempMap4.put("KEY1","RVP");	    
+	    /*tempMap4.put("KEY1","RVP");	    
 	    tempMap4.put("VALUE","Reversal Premium");
-	    list.add(tempMap4);
+	    list.add(tempMap4);*/
 	    }
 	    else
 	    {
@@ -374,9 +375,9 @@ public MdInstallmentDatesRes mdInstallmentDates(MdInstallmentDatesReq req) {
 		tempMap3.put("KEY1","RTP");	    
 		tempMap3.put("VALUE","Return Premium");
 		 list.add(tempMap3);
-		tempMap4.put("KEY1","RVP");	    
+		/*tempMap4.put("KEY1","RVP");	    
 		tempMap4.put("VALUE","Reversal Premium");
-		 list.add(tempMap4);
+		 list.add(tempMap4);*/
 	    }
 		 if(list.size()>0)
 		 for(int i =0; i<list.size(); i++) {
@@ -1588,8 +1589,8 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 		String  string=null;
 		try{
 			String query= "premium.select.mndPremiumOC";
-			// final String[] Instalmentno = getAmount.split("_");
-			List<Map<String,Object>> list=queryImpl.selectList(query, new String[] {contNo,layerNo,instalmentno});
+			 final String[] Instalmentno = instalmentno.split("_");
+			List<Map<String,Object>> list=queryImpl.selectList(query, new String[] {contNo,layerNo,Instalmentno[0]});
 			if (!CollectionUtils.isEmpty(list)) {
 				string = list.get(0).get("MND_PREMIUM_OC") == null ? "" : list.get(0).get("MND_PREMIUM_OC").toString();
 			}
@@ -1863,6 +1864,7 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
 					res.setOtherCost(data.getOtherCostOc()==null?"":data.getOtherCostOc().toString());
 					res.setBrokerageusd(data.getBrokerageAmtDc()==null?"":data.getBrokerageAmtDc().toString());
 					res.setTaxusd(data.getTaxAmtDc()==null?"":data.getTaxAmtDc().toString());
+					res.setTaxOc(data.getTaxAmtOc()==null?"":data.getTaxAmtOc().toString());
 					res.setMdpremiumusd(data.getMDpremiumDc()==null?"":data.getMDpremiumDc().toString());
 					res.setAdjustmentpremiumusd(data.getAdjustmentPremiumDc()==null?"":data.getAdjustmentPremiumDc().toString());
 					res.setRecuirementpremiumusd(data.getRecPremiumDc()==null?"":data.getRecPremiumDc().toString());
@@ -1886,6 +1888,7 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
                     res.setTaxDedectSource(data.getTdsOc()==null?"":data.getTdsOc().toString());
                     res.setTaxDedectSourceDc(data.getTdsDc()==null?"":data.getTdsDc().toString());
                     res.setVatPremiumOc(data.getVatPremiumOc()==null?"":data.getVatPremiumOc().toString());
+                    res.setDocumentType(data.getDocumentType()==null?"":data.getDocumentType().toString());
                     res.setVatPremiumDc(data.getVatPremiumDc()==null?"":data.getVatPremiumDc().toString());
                     res.setBonus(data.getBonusOc()==null?"":data.getBonusOc().toString());
                     res.setBonusDc(data.getBonusDc()==null?"":data.getBonusDc().toString());
@@ -1894,7 +1897,8 @@ public ContractDetailsRes contractDetails(ContractDetailsReq req) {
                     res.setStatementDate(data.getStatementDate()==null?"":sdf.format(data.getStatementDate()));
                     res.setChooseTransaction(data.getReverselStatus()==null?"":data.getReverselStatus().toString());
                     res.setTransDropDownVal(data.getReverseTransactionNo()==null?"":data.getReverseTransactionNo().toString());
-
+                    res.setBrokerageVatOc(data.getBrokerageVatOc()==null?"":fm.formatter(data.getBrokerageVatOc().toString()));
+					res.setBrokerageVatDc(data.getBrokerageVatDc()==null?"":fm.formatter(data.getBrokerageVatDc().toString()));
 					resList.add(res);
 				}
 			}		

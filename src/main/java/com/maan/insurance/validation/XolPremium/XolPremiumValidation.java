@@ -465,6 +465,9 @@ public class XolPremiumValidation {
 					{
 						list.add(new ErrorCheck(prop.getProperty("errors.currency.select"),"currency","01"));  
 					}	
+					if(StringUtils.isBlank(bean.getDocumentType())) {
+						list.add(new ErrorCheck(prop.getProperty("errors.documenttype.select"),"documenttype","01"));
+					}
 					if("transEdit".equalsIgnoreCase(bean.getMode())){
 						if(StringUtils.isBlank(bean.getTransDropDownVal()) && "Yes".equalsIgnoreCase(bean.getChooseTransaction())){
 							list.add(new ErrorCheck(prop.getProperty("resersel.trans"),"TransDropDownVal","01")); 

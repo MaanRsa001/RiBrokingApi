@@ -1389,9 +1389,9 @@ public class PropPremiumServiceImple implements PropPremiumService {
 			
 			args[65]=StringUtils.isEmpty(req.getOsClaimsLossUpdateOC())?"0":getModeOfTransaction(req.getOsClaimsLossUpdateOC(),req);
 			args[66]=dropDownImple.GetDesginationCountry(args[65], req.getExchRate());
-			args[97] = req.getM1oc();
-			args[98] = req.getM2oc();
-			args[99] = req.getM2oc();			
+			args[97] = StringUtils.isBlank(req.getM1oc())?"0":req.getM1oc();
+			args[98] = StringUtils.isBlank(req.getM2oc())?"0":req.getM2oc();
+			args[99] = StringUtils.isBlank(req.getM3oc())?"0":req.getM3oc();			
 			args[94] = getModeOfTransaction(req.getBrokerageVat(),req);
 			args[95] = dropDownImple.GetDesginationCountry(args[94], req.getExchRate());
 			args[96] = req.getDocumentType();
@@ -2844,9 +2844,9 @@ public class PropPremiumServiceImple implements PropPremiumService {
 				entity.setNetdueDc(new BigDecimal(dropDownImple.GetDesginationCountry(entity.getNetdueOc().toString(), beanObj.getExchRate())));
 				 entity.setMovementYn(null);
 				 entity.setEntryDate(new Date());
-				 entity.setM1Oc(new BigDecimal(beanObj.getM1oc()));	
-				 entity.setM2Oc(new BigDecimal(beanObj.getM2oc()));	
-				 entity.setM3Oc(new BigDecimal(beanObj.getM3oc()));	
+				 entity.setM1Oc(new BigDecimal(StringUtils.isBlank(beanObj.getM1oc())?"0":beanObj.getM1oc()));	
+				 entity.setM2Oc(new BigDecimal(StringUtils.isBlank(beanObj.getM2oc())?"0":beanObj.getM2oc()));	
+				 entity.setM3Oc(new BigDecimal(StringUtils.isBlank(beanObj.getM3oc())?"0":beanObj.getM3oc()));	
 				 pdTempRepo.save(entity);
 
 			} 
@@ -3707,6 +3707,7 @@ public class PropPremiumServiceImple implements PropPremiumService {
 						res.setVatPremiumDc(data.getVatPremiumDc()==null?"":fm.formatter(data.getVatPremiumDc().toString()));
 						res.setBrokerageVatOc(data.getBrokerageVatOc()==null?"":fm.formatter(data.getBrokerageVatOc().toString()));
 						res.setBrokerageVatDc(data.getBrokerageVatDc()==null?"":fm.formatter(data.getBrokerageVatDc().toString()));
+						res.setDocumentType(data.getDocumentType()==null?"":data.getDocumentType().toString());
 						res.setLossParticipation(data.getLpcOc()==null?"":fm.formatter(data.getLpcOc().toString()));
 						res.setLossParticipationDC(data.getLpcDc()==null?"":fm.formatter(data.getLpcDc().toString()));
 						res.setSlideScaleCom(data.getScCommOc()==null?"":fm.formatter(data.getScCommOc().toString()));

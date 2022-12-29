@@ -47,6 +47,8 @@ public class GetRIPremiumListRes1 {
 
 	@JsonProperty("Brokerageusd")
 	private String brokerageusd;
+	@JsonProperty("TaxOc")
+	private String taxOc;
 	@JsonProperty("Taxusd")
 	private String taxusd;
 
@@ -142,6 +144,11 @@ public class GetRIPremiumListRes1 {
 	private String departmentId;
 	@JsonProperty("GnpiDate")
 	private String gnpiDate;
+	@JsonProperty("BrokerageVatOc")
+	private String brokerageVatOc;
 	
-
+	@JsonProperty("BrokerageVatDc")
+	private String brokerageVatDc;
+	@JsonProperty("DocumentType")
+	private String documentType;
 }

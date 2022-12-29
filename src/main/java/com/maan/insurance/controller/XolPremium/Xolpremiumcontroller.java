@@ -18,6 +18,7 @@ import com.maan.insurance.error.ErrorCheck;
 import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.xolPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.xolPremium.GetAdjPremiumReq;
+import com.maan.insurance.model.req.xolPremium.GetInstallmentAmountReq;
 import com.maan.insurance.model.req.xolPremium.GetPremiumDetailsReq;
 import com.maan.insurance.model.req.xolPremium.GetPremiumedListReq;
 import com.maan.insurance.model.req.xolPremium.MdInstallmentDatesReq;
@@ -145,9 +146,9 @@ public class Xolpremiumcontroller {
 	}
 	 	return xps.getPremiumDetails(req); 
 	} 
-	@GetMapping("/getInstalmentAmount/{contNo}/{layerNo}/{instalmentno}")
-	public CommonSaveRes getInstalmentAmount(@PathVariable ("contNo") String contNo,@PathVariable ("layerNo") String layerNo,@PathVariable ("instalmentno") String instalmentno) throws CommonValidationException {
-	return xps.getInstalmentAmount(contNo,layerNo,instalmentno);
+	@PostMapping("/getInstalmentAmount")
+	public CommonSaveRes getInstalmentAmount(@RequestBody GetInstallmentAmountReq req) throws CommonValidationException {
+	return xps.getInstalmentAmount(req.getContNo(),req.getLayerno(),req.getInstalmentno());
 	} 
 	@GetMapping("/getBrokerAndCedingName/{contNo}/{branchCode}")
 	public GetBrokerAndCedingNameRes getBrokerAndCedingName(@PathVariable ("contNo") String contNo,@PathVariable ("branchCode") String branchCode) throws CommonValidationException {

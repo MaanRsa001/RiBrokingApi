@@ -207,6 +207,8 @@ public class ViewRIPremiumListRes1 {
 	private String sumOfPaidPremium;
 	@JsonProperty("CurrencyName")
 	private String currencyName;
+	@JsonProperty("DocumentType")
+	private String documentType;
 	
 	
 

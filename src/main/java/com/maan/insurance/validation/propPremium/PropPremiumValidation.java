@@ -717,6 +717,14 @@ public class PropPremiumValidation {
 					{
 						 list.add(new ErrorCheck(prop.getProperty("errors.currency.select"),"",""));	 
 					}
+					if(StringUtils.isBlank(req.getDocumentType())) {
+						list.add(new ErrorCheck(prop.getProperty("errors.documenttype.select"),"documenttype","01"));
+					}
+					if("transEdit".equalsIgnoreCase(req.getMode())){
+						if(StringUtils.isBlank(req.getTransDropDownVal()) && "Yes".equalsIgnoreCase(req.getChooseTransaction())){
+							list.add(new ErrorCheck(prop.getProperty("resersel.trans"),"TransDropDownVal","01")); 
+						}
+					}
 					
 		} catch(Exception e) {
 			e.printStackTrace();
