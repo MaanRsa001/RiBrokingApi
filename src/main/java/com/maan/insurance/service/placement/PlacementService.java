@@ -19,6 +19,7 @@ import com.maan.insurance.model.req.placement.SendMailReq;
 import com.maan.insurance.model.req.placement.UpdateMailDetailsReq;
 import com.maan.insurance.model.req.placement.UpdatePlacementReq;
 import com.maan.insurance.model.req.placement.UploadDocumentReq;
+import com.maan.insurance.model.req.propPremium.PlacementSummaryReq;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.placement.AttachFileRes;
 import com.maan.insurance.model.res.placement.CommonSaveResList;
@@ -32,6 +33,7 @@ import com.maan.insurance.model.res.placement.GetPlacingInfoRes;
 import com.maan.insurance.model.res.placement.GetReinsurerInfoRes;
 import com.maan.insurance.model.res.placement.InsertMailDetailsRes;
 import com.maan.insurance.model.res.placement.InsertPlacingRes;
+import com.maan.insurance.model.res.placement.PlacementSummaryRes;
 import com.maan.insurance.model.res.placement.ProposalInfoRes;
 import com.maan.insurance.model.res.placement.UploadDocumentRes;
 import com.maan.insurance.model.res.retro.CommonResponse;
@@ -85,5 +87,7 @@ public interface PlacementService {
 	GetPlacementViewListRes getPlacementViewList(GetPlacementViewListReq req);
 
 	GetPlacementViewRes getPlacementView(GetPlacementViewReq req);
+
+	PlacementSummaryRes placementSummary(PlacementSummaryReq req);
 
 }

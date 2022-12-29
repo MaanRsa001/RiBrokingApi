@@ -31,6 +31,7 @@ import com.maan.insurance.model.req.placement.UpdateMailDetailsReq;
 import com.maan.insurance.model.req.placement.UpdatePlacementReq;
 import com.maan.insurance.model.req.placement.UpdateStatusReq;
 import com.maan.insurance.model.req.placement.UploadDocumentReq;
+import com.maan.insurance.model.req.propPremium.PlacementSummaryReq;
 import com.maan.insurance.model.req.retro.FirstInsertReq;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
 import com.maan.insurance.model.res.placement.AttachFileRes;
@@ -45,6 +46,7 @@ import com.maan.insurance.model.res.placement.GetPlacingInfoRes;
 import com.maan.insurance.model.res.placement.GetReinsurerInfoRes;
 import com.maan.insurance.model.res.placement.InsertMailDetailsRes;
 import com.maan.insurance.model.res.placement.InsertPlacingRes;
+import com.maan.insurance.model.res.placement.PlacementSummaryRes;
 import com.maan.insurance.model.res.placement.ProposalInfoRes;
 import com.maan.insurance.model.res.placement.UploadDocumentRes;
 import com.maan.insurance.model.res.retro.CommonResponse;
@@ -245,5 +247,13 @@ Gson gson = new Gson();
 			 throw new CommonValidationException("error",error);
 	}
 		return serv.getPlacementView(req);  
-	} 
+	}  
+	@PostMapping("/placementSummary")
+	public PlacementSummaryRes placementSummary(@RequestBody PlacementSummaryReq req) throws CommonValidationException {
+		List<ErrorCheck> error= val.placementSummaryVali(req);
+		if(error!=null && error.size()>0) {
+			 throw new CommonValidationException("error",error);
+	}
+		return serv.placementSummary(req);  
+	}
 }

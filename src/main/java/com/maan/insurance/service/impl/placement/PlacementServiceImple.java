@@ -86,6 +86,7 @@ import com.maan.insurance.model.req.placement.UpdatePlacementListReq;
 import com.maan.insurance.model.req.placement.UpdatePlacementReq;
 import com.maan.insurance.model.req.placement.UploadDocumentReq;
 import com.maan.insurance.model.req.placement.UploadDocumentReq1;
+import com.maan.insurance.model.req.propPremium.PlacementSummaryReq;
 import com.maan.insurance.model.res.DropDown.CommonResDropDown;
 import com.maan.insurance.model.res.DropDown.GetBouquetExistingListRes1;
 import com.maan.insurance.model.res.DropDown.GetCommonDropDownRes;
@@ -115,6 +116,8 @@ import com.maan.insurance.model.res.placement.InsertMailDetailsRes;
 import com.maan.insurance.model.res.placement.InsertMailDetailsRes1;
 import com.maan.insurance.model.res.placement.InsertPlacingRes;
 import com.maan.insurance.model.res.placement.InsertPlacingRes1;
+import com.maan.insurance.model.res.placement.PlacementSummaryRes;
+import com.maan.insurance.model.res.placement.PlacementSummaryRes1;
 import com.maan.insurance.model.res.placement.ProposalInfoRes;
 import com.maan.insurance.model.res.placement.ProposalInfoRes1;
 import com.maan.insurance.model.res.placement.SavePlacingRes;
@@ -2127,6 +2130,7 @@ public class PlacementServiceImple implements PlacementService {
 	@Override
 	public GetPlacementViewRes getPlacementView(GetPlacementViewReq bean) {
 		GetPlacementViewRes response = new GetPlacementViewRes();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		try {
 			//GET_PLACEMENT_STATUS_VIEW
 			CriteriaBuilder cb = em.getCriteriaBuilder(); 
@@ -2157,7 +2161,7 @@ public class PlacementServiceImple implements PlacementService {
 				res.setCedentCorrespondent(map.get("CEDENT_CORRESPONDENCE")==null?"":map.get("CEDENT_CORRESPONDENCE").toString());
 				res.setReinsurerCorrespondent(map.get("REINSURER_CORRESPONDENCE")==null?"":map.get("REINSURER_CORRESPONDENCE").toString());
 				res.setTqrCorrespondent(map.get("TQR_CORRESPONDENCE")==null?"":map.get("TQR_CORRESPONDENCE").toString());
-				res.setUpdateDate(map.get("UPDATE_DATE")==null?"":map.get("UPDATE_DATE").toString());
+				res.setUpdateDate(map.get("UPDATE_DATE")==null?"":sdf.format(map.get("UPDATE_DATE")));
 				response.setCommonResponse(res);
 			}
 			
@@ -2172,6 +2176,94 @@ public class PlacementServiceImple implements PlacementService {
 		return response;
 	}
 
+	@Override
+	public PlacementSummaryRes placementSummary(PlacementSummaryReq bean) {
+		PlacementSummaryRes response = new PlacementSummaryRes();
+		List<Map<String,Object>>list=null;
+		String query="";
+		try {
+			String[] obj=new String[2];
+			query= "NEW_CONTRACT_PL_SUMMARY";
+			 String qutext = prop.getProperty(query);
+			obj[0]=bean.getBranchCode();
+			obj[1]=bean.getProposalNo();
+			
+			if(StringUtils.isNotBlank(bean.getSearchType()) && null !=bean.getSearchType()){
+            	
+        		if(StringUtils.isNotBlank(bean.getCompanyNameSearch())){
+            		obj = dropDownImple.getIncObjectArray(obj, new String[]{("%" + bean.getCompanyNameSearch() + "%")});
+            		qutext += " " + " AND UPPER((SELECT CASE WHEN PI.CUSTOMER_TYPE = 'C' THEN PI.COMPANY_NAME ELSE PI.FIRST_NAME || ' ' || PI.LAST_NAME END NAME FROM PERSONAL_INFO PI WHERE CUSTOMER_TYPE='R'  AND CUSTOMER_ID=TRP.REINSURER_ID AND BRANCH_CODE=TRP.BRANCH_CODE  AND AMEND_ID=(SELECT MAX(AMEND_ID) FROM PERSONAL_INFO WHERE CUSTOMER_ID=PI.CUSTOMER_ID))) LIKE UPPER(?)";
+            	}
+        		if(StringUtils.isNotBlank(bean.getBrokerNameSearch())){
+            		obj = dropDownImple.getIncObjectArray(obj, new String[]{("%" + bean.getBrokerNameSearch() + "%")});
+            		qutext += " " + " AND UPPER((SELECT CASE WHEN PI.CUSTOMER_TYPE = 'C' THEN PI.COMPANY_NAME ELSE PI.FIRST_NAME || ' ' || PI.LAST_NAME END NAME FROM PERSONAL_INFO PI WHERE CUSTOMER_TYPE='B'  AND CUSTOMER_ID=TRP.BROKER_ID AND BRANCH_CODE=TRP.BRANCH_CODE AND AMEND_ID=(SELECT MAX(AMEND_ID) FROM PERSONAL_INFO WHERE CUSTOMER_ID=PI.CUSTOMER_ID))) LIKE UPPER(?)";
+            	}
+            	if(StringUtils.isNotBlank(bean.getUwYearSearch())){
+            		obj = dropDownImple.getIncObjectArray(obj, new String[]{("%" + bean.getUwYearSearch() + "%")});
+            		qutext += " " +" AND UPPER(UW_YEAR) LIKE UPPER(?)";
+            	}
+            	if(StringUtils.isNotBlank(bean.getUwYearToSearch())){
+            		obj = dropDownImple.getIncObjectArray(obj, new String[]{("%" + bean.getUwYearToSearch() + "%")});
+            		qutext += " " +" AND UPPER(UW_YEAR_TO) LIKE UPPER(?)";
+            	}
+            	if(StringUtils.isNotBlank(bean.getIncepDateSearch())){
+            		obj = dropDownImple.getIncObjectArray(obj, new String[]{("%" + bean.getIncepDateSearch() + "%")});
+            		qutext += " "  +" AND TO_CHAR(INCEPTION_DATE,'DD/MM/YYYY') LIKE ?";;
+            	}
+            	if(StringUtils.isNotBlank(bean.getExpDateSearch())){
+            		obj = dropDownImple.getIncObjectArray(obj, new String[]{("%" + bean.getExpDateSearch() + "%")});
+            		qutext += " " +" AND TO_CHAR(EXPIRY_DATE,'DD/MM/YYYY') LIKE ?";;
+            	}
+            	qutext += " " + "ORDER BY PM.PROPOSAL_NO, TRP.SNO";
+            	
+            }else{
+//            	bean.setCompanyNameSearch("");
+//            	bean.setBrokerNameSearch("");
+//            	bean.setUwYearSearch("");
+//            	bean.setUwYearToSearch("");
+//            	bean.setIncepDateSearch("");
+//            	bean.setExpDateSearch("");
+            }
+	        	query1 =queryImpl.setQueryProp(qutext, obj);
+	    		query1.unwrap(NativeQueryImpl.class).setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+	    		try {
+	    			 list = query1.getResultList();
+	    		} catch(Exception e) {
+	    			e.printStackTrace();
+	    		} 
+	    		 List<PlacementSummaryRes1> resList =new ArrayList<PlacementSummaryRes1>();
+	             if(list!=null && list.size()>0){
+	             for (int i = 0; i < list.size(); i++) {
+	                 Map<String, Object> tempMap = list.get(i);
+	                 PlacementSummaryRes1 tempBean = new PlacementSummaryRes1();
+	                 tempBean.setOfferNo(tempMap.get("OFFER_NO") == null ? "" : tempMap.get("OFFER_NO").toString()); 
+	                 tempBean.setBaseProposal(tempMap.get("BASE_PROPOSAL") == null ? "" : tempMap.get("BASE_PROPOSAL").toString()); 
+	                 tempBean.setProposalNo(tempMap.get("PROPOSAL_NO") == null ? "" : tempMap.get("PROPOSAL_NO").toString()); 
+	                 tempBean.setRskTreatyid(tempMap.get("RSK_TREATYID") == null ? "" : tempMap.get("TREATY_NAME").toString()); 
+	                 tempBean.setLayerSection(tempMap.get("LAYER_SECTION") == null ? "" : tempMap.get("LAYER_SECTION").toString()); 
+	                 tempBean.setSno(tempMap.get("SNO") == null ? "" : tempMap.get("SNO").toString()); 
+	                 tempBean.setReinsurerName(tempMap.get("REINSURER_NAME") == null ? "" : tempMap.get("REINSURER_NAME").toString()); 
+	                 tempBean.setBrokerName(tempMap.get("BROKER_NAME") == null ? "" : tempMap.get("BROKER_NAME").toString()); 
+	                 tempBean.setCurrency(tempMap.get("CURRENCY") == null ? "" : tempMap.get("CURRENCY").toString()); 
+	                 tempBean.setEpi100Oc(tempMap.get("EPI_100_OC") == null ? "" : tempMap.get("EPI_100_OC").toString()); 
+	                 tempBean.setEpi100Dc(tempMap.get("EPI_100_DC") == null ? "" : tempMap.get("EPI_100_DC").toString()); 
+	                 tempBean.setPlacingStatus(tempMap.get("PLACING_STATUS") == null ? "" : tempMap.get("PLACING_STATUS").toString()); 
+	                 tempBean.setShareSigned(tempMap.get("SHARE_SIGNED") == null ? "" : tempMap.get("SHARE_SIGNED").toString()); 
+	                tempBean.setBrokerage(tempMap.get("BROKERAGE") == null ? "" : tempMap.get("BROKERAGE").toString()); 
+	                tempBean.setBrokerageAmt(tempMap.get("BROKERAGE_AMT") == null ? "" : tempMap.get("BROKERAGE_AMT").toString());
+	                resList.add(tempBean);
+	             }
+	             }
+	 			 response.setCommonResponse(resList);
+	 			 response.setMessage("Success");
+	 			 response.setIsError(false);
+	 			}catch(Exception e){
+	 					log.error(e);
+	 					e.printStackTrace();
+	 					response.setMessage("Failed");
+	 					response.setIsError(true);
+	 				}
+	 			return response;
+	}
 
-	
 	}

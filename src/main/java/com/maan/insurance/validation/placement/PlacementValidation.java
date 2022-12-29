@@ -34,6 +34,7 @@ import com.maan.insurance.model.req.placement.UpdateMailDetailsReq;
 import com.maan.insurance.model.req.placement.UpdatePlacementListReq;
 import com.maan.insurance.model.req.placement.UpdatePlacementReq;
 import com.maan.insurance.model.req.placement.UploadDocumentReq;
+import com.maan.insurance.model.req.propPremium.PlacementSummaryReq;
 import com.maan.insurance.service.impl.Dropdown.DropDownServiceImple;
 import com.maan.insurance.service.impl.placement.PlacementServiceImple;
 import com.maan.insurance.service.impl.propPremium.PropPremiumServiceImple;
@@ -580,19 +581,45 @@ public List<ErrorCheck> validationStatus(UpdatePlacementReq bean) {
 			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "1"));
 		}
 		if (StringUtils.isBlank(req.getBrokerId())) {
-			list.add(new ErrorCheck("Please Enter BrokerId", "BrokerId", "3"));
+			list.add(new ErrorCheck("Please Enter BrokerId", "BrokerId", "2"));
 		}
 		if (StringUtils.isBlank(req.getEproposalNo())) {
-			list.add(new ErrorCheck("Please Enter EproposalNo", "EproposalNo", "4"));
+			list.add(new ErrorCheck("Please Enter EproposalNo", "EproposalNo", "3"));
 		}
 		if (StringUtils.isBlank(req.getReinsurerId())) {
-			list.add(new ErrorCheck("Please Enter ReinsurerId", "ReinsurerId", "7"));
+			list.add(new ErrorCheck("Please Enter ReinsurerId", "ReinsurerId", "4"));
 		}
 		return list;
 	}
 
 	public List<ErrorCheck> getPlacementViewVali(GetPlacementViewReq req) {
-		// TODO Auto-generated method stub
-		return null;
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if (StringUtils.isBlank(req.getBranchCode())) {
+			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "1"));
+		}
+		if (StringUtils.isBlank(req.getBrokerId())) {
+			list.add(new ErrorCheck("Please Enter BrokerId", "BrokerId", "2"));
+		}
+		if (StringUtils.isBlank(req.getEproposalNo())) {
+			list.add(new ErrorCheck("Please Enter EproposalNo", "EproposalNo", "3"));
+		}
+		if (StringUtils.isBlank(req.getReinsurerId())) {
+			list.add(new ErrorCheck("Please Enter ReinsurerId", "ReinsurerId", "4"));
+		}
+		if (StringUtils.isBlank(req.getNewStatus())) {
+			list.add(new ErrorCheck("Please Enter NewStatus", "NewStatus", "5"));
+		}
+		return list;
+	}
+
+	public List<ErrorCheck> placementSummaryVali(PlacementSummaryReq req) {
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if (StringUtils.isBlank(req.getBranchCode())) {
+			list.add(new ErrorCheck("Please Enter BranchCode", "BranchCode", "1"));
+		}
+		if (StringUtils.isBlank(req.getProposalNo())) {
+			list.add(new ErrorCheck("Please Enter ProposalNo", "ProposalNo", "2"));
+		}
+		return list;
 	}
 	}

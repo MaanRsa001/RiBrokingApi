@@ -280,7 +280,7 @@ public class PropPremiumController {
 		}
 		return premiumService.getVatInfo(req);	
 	}
-	@PostMapping("/Proppremium/getripremiumlist")
+	@PostMapping("/Proppremium/viewRIPremiumList")
 	public ViewRIPremiumListRes viewRIPremiumList(@RequestBody GetRIPremiumListReq req) throws CommonValidationException {
 		List<ErrorCheck> error = premiumVali.getRIPremiumListVali(req);
 		if(error!= null && error.size()>0) {
