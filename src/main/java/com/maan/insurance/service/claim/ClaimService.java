@@ -23,6 +23,7 @@ import com.maan.insurance.model.req.claim.InsertCliamDetailsMode2Req;
 import com.maan.insurance.model.req.claim.InsertCliamDetailsMode3Req;
 import com.maan.insurance.model.req.claim.InsertCliamDetailsMode8Req;
 import com.maan.insurance.model.req.claim.ProposalNoReq;
+import com.maan.insurance.model.req.claim.claimNoListReq;
 import com.maan.insurance.model.res.ClaimPaymentListRes;
 import com.maan.insurance.model.res.GetShortnameRes;
 import com.maan.insurance.model.res.claim.AllocListRes;
@@ -60,6 +61,7 @@ import com.maan.insurance.model.res.claim.InsertCliamDetailsMode8Res;
 import com.maan.insurance.model.res.claim.ProductIdListRes;
 import com.maan.insurance.model.res.claim.ProductIdListRes1;
 import com.maan.insurance.model.res.claim.ProposalNoRes;
+import com.maan.insurance.model.res.claim.claimNoListRes;
 @Service
 public interface ClaimService {
 
@@ -148,6 +150,8 @@ public interface ClaimService {
 	InsertCliamDetailsMode3Res insertCliamDetailsMode3(InsertCliamDetailsMode3Req req);
 
 	InsertCliamDetailsMode12Res insertCliamDetailsMode12(InsertCliamDetailsMode12Req req);
+
+	claimNoListRes claimNoList(claimNoListReq req);
 
 	
 

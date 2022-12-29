@@ -1,4 +1,4 @@
-package com.maan.insurance.model.res.retro;
+package com.maan.insurance.model.res.propPremium;
 
 import java.util.List;
 
@@ -6,21 +6,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.maan.insurance.error.ErrorCheck;
 
 import lombok.Data;
+
 @Data
-public class CommonResponse {
+public class getCurrencyShortNameRes {
 	
 	@JsonProperty("Result")
-	private String serilno;
+	private String response;
 	
 	@JsonProperty("Message")
 	private String message;
 
-	@JsonProperty("IsError")	
+	@JsonProperty("IsError")
 	private Boolean isError;
 
 	@JsonProperty("ErrorMessage")
-	private List<ErrorCheck> errorMessage;
-	
+	private List<ErrorCheck> errors;
+
 	@JsonProperty("ErroCode")
 	private int erroCode;
+
 }

@@ -67,6 +67,7 @@ import com.maan.insurance.model.res.GetTreasuryJournalViewRes;
 import com.maan.insurance.model.res.GetTreasuryJournalViewRes1;
 import com.maan.insurance.model.res.ListSecondPageInfo;
 import com.maan.insurance.model.res.PaymentRecieptRes;
+import com.maan.insurance.model.res.PaymentRecieptRes1;
 import com.maan.insurance.model.res.ReceiptTreasuryListRes;
 import com.maan.insurance.model.res.ReceiptTreasuryRes;
 import com.maan.insurance.model.res.ReceiptViewListsRes;
@@ -113,7 +114,8 @@ public class TreasuryServiceImpl implements TreasuryService {
 			args[1] = req.getBroker();
 			args[2] = req.getCedingCompany() == null ? "0" : req.getCedingCompany().trim();
 			args[3] = req.getCurrency();
-			args[4] = req.getPaymentAmount();
+			String payamount = req.getPaymentAmount().toString().replace(",", "");
+			args[4] = payamount;
 			args[5] = req.getExchangeRate();// req.getName();
 			args[6] = req.getReceiptBankId();
 			args[7] = req.getProductId();
@@ -132,6 +134,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 
 			queryImpl.updateQuery("PAYMENT_INSERT_RECEIPT", args);
 			generationInsert(req);
+			res.setSerilno(req.getSerialno());
 			res.setMessage("Success");
 			res.setIsError(false);
 		} catch (Exception e) {
@@ -262,7 +265,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 		String[] args = null;
 		ReverseInsertRes response = new ReverseInsertRes();
 		List<ReverseRes> reverseRes = new ArrayList<ReverseRes>();
-		ReverseRes res1 = new ReverseRes();
+		ReverseRes res = new ReverseRes();
 		String currency = "";
 		Double a = 0.0, b = 0.0, c = 0.0;
 		try {
@@ -280,8 +283,9 @@ public class TreasuryServiceImpl implements TreasuryService {
 			if (resList.size() > 0) {
 				for (int i = 0; i < resList.size(); i++) {
 					Map<String, Object> resMap = resList.get(i);
+					ReverseRes res1 = new ReverseRes();
 					curencyId = resMap.get("CURRENCY_ID") == null ? "" : resMap.get("CURRENCY_ID").toString();
-					if ("R".equalsIgnoreCase(resMap.get("STATUS") == null ? "" : resMap.get("STATUS").toString())) {
+					if ("Y".equalsIgnoreCase(resMap.get("STATUS") == null ? "" : resMap.get("STATUS").toString())) {
 
 						res1.setSerialNo(resMap.get("SNO") == null ? "" : resMap.get("SNO").toString());
 						res1.setAllocateddate(
@@ -328,7 +332,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 							args[2] = req.getBranchCode();
 							args[3] = resMap.get("CONTRACT_NO")==null?"":resMap.get("CONTRACT_NO").toString();
 							args[4] = resMap.get("TRANSACTION_NO")==null?"":resMap.get("TRANSACTION_NO").toString();
-							queryImpl.updateQuery("payment.update.rskPremDtls1", args);
+							queryImpl.updateQuery("payment.update.rskPremDtls", args);
 
 							args = new String[2];
 							args[0] = resMap.get("CONTRACT_NO")==null?"":resMap.get("CONTRACT_NO").toString();
@@ -424,11 +428,11 @@ public class TreasuryServiceImpl implements TreasuryService {
 				args[1] = curencyId;
 				List<Map<String, Object>> paymentRet = queryImpl.selectList("payment.select.getPymtRetDtls", args);
 				if (!CollectionUtils.isEmpty(paymentRet)) {
-					res1.setPayAmount((paymentRet.get(0).get("AMOUNT") == null ? ""
+					res.setPayAmount((paymentRet.get(0).get("AMOUNT") == null ? ""
 							: paymentRet.get(0).get("AMOUNT").toString()));
 				}
 
-				reverseRes.add(res1);
+				reverseRes.add(res);
 				response.setCommonResponse(reverseRes);
 
 			}
@@ -519,7 +523,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 						resMap.get("CEDING_COMPANY") == null ? "" : resMap.get("CEDING_COMPANY").toString());
 				finalList.add(res);
 			}
-			if ("".equals(req.getBrokerName())) {
+			if ("".equals(StringUtils.isBlank(req.getBrokerName())?"":req.getBrokerName())) {
 
 				args = new String[3];
 				args[0] = req.getBranchCode();
@@ -533,6 +537,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 				}
 			}
 			res1.setAllocatedStatusRes(finalList);
+			res1.setBrokerName(req.getBrokerName());
 			response.setCommonResponse(res1);
 			response.setMessage("Success");
 			response.setIsError(false);
@@ -561,12 +566,12 @@ public class TreasuryServiceImpl implements TreasuryService {
 			} else {
 				args[0] = req.getSerialNo();
 			}
-			List<Map<String, Object>> allocateView = new ArrayList<>();
+			List<Map<String, Object>> allocateView,list = new ArrayList<>();
 
 			if (!"".equals(req.getSerialNo()) && !"VIEW".equalsIgnoreCase(req.getFlag())) {
-				allocateView = queryImpl.selectList("payment.select.getAlloTransDtls", new String[] {req.getPayRecNo(), req.getSerialNo()});
+				list = queryImpl.selectList("payment.select.getAlloTransDtls", new String[] {req.getPayRecNo(), req.getSerialNo()});
 			}
-			allocateView = queryImpl.selectList("payment.select.getAlloTransDtls1", new String[] {req.getPayRecNo()});
+			list = queryImpl.selectList("payment.select.getAlloTransDtls1", new String[] {req.getPayRecNo()});
 
 			if (!"".equals(req.getSerialNo()) && !"VIEW".equalsIgnoreCase(req.getFlag())) {
 				args = new String[2];
@@ -581,14 +586,18 @@ public class TreasuryServiceImpl implements TreasuryService {
 					args[1] = allocateView.get(0).get("BROKER_ID") == null ? ""
 							: allocateView.get(0).get("BROKER_ID").toString();
 					args[2] = "B";
+					String cedingid = allocateView.get(0).get("CEDING_ID") == null ? "": allocateView.get(0).get("CEDING_ID").toString();
 					allocateView = queryImpl.selectList("common.select.getCompName", args);
+					
+					if (!CollectionUtils.isEmpty(allocateView)) {
+						res.setBrokerName((allocateView.get(0).get("COMPNAY") == null ? ""
+								: allocateView.get(0).get("COMPNAY").toString()));
+					}
 
-					if ("63".equals(allocateView.get(0).get("BROKER_ID") == null ? ""
-							: allocateView.get(0).get("BROKER_ID").toString())) {
+					if ("63".equals(args[1])) {
 						args = new String[3];
 						args[0] = req.getBranchCode();
-						args[1] = allocateView.get(0).get("CEDING_ID") == null ? ""
-								: allocateView.get(0).get("CEDING_ID").toString();
+						args[1] = cedingid;
 						args[2] = "C";
 						allocateView = queryImpl.selectList("common.select.getCompName", args);
 						if (!CollectionUtils.isEmpty(allocateView)) {
@@ -625,50 +634,45 @@ public class TreasuryServiceImpl implements TreasuryService {
 				res.setAllTillDate("");
 			}
 
-			if (allocateView.size() > 0) {
+			if (list.size() > 0) {
 
-				for (int i = 0; i < allocateView.size(); i++) {
+				for (int i = 0; i < list.size(); i++) {
 
-					Map<String, Object> resMap = allocateView.get(i);
-					res.setSerialNo(resMap.get("SNO") == null ? "" : resMap.get("SNO").toString());
-					res.setAllocatedDate(
+					Map<String, Object> resMap = list.get(i);
+					AllocateViewRes res2 = new AllocateViewRes();
+					res2.setSerialNo(resMap.get("SNO") == null ? "" : resMap.get("SNO").toString());
+					res2.setAllocatedDate(
 							resMap.get("INCEPTION_DATE") == null ? "" : resMap.get("INCEPTION_DATE").toString());
-					res.setTransactionNo(
+					res2.setTransactionNo(
 							resMap.get("TRANSACTION_NO") == null ? "" : resMap.get("TRANSACTION_NO").toString());
-					res.setContractNo(resMap.get("CONTRACT_NO") == null ? "" : resMap.get("CONTRACT_NO").toString());
-					res.setProductName(resMap.get("PRODUCT_NAME") == null ? "" : resMap.get("PRODUCT_NAME").toString());
-					res.setType(resMap.get("TYPE") == null ? "" : resMap.get("TYPE").toString());
-					res.setCurrencyValue(resMap.get("CURRENCY_ID") == null ? "" : resMap.get("CURRENCY_ID").toString());
-					res.setAlloccurrencyId(resMap.get("CURRENCY_ID")==null?"":resMap.get("CURRENCY_ID").toString());
-					res.setStatus(("R".equals(resMap.get("STATUS") == null ? "" : resMap.get("STATUS").toString())
+					res2.setContractNo(resMap.get("CONTRACT_NO") == null ? "" : resMap.get("CONTRACT_NO").toString());
+					res2.setProductName(resMap.get("PRODUCT_NAME") == null ? "" : resMap.get("PRODUCT_NAME").toString());
+					res2.setType(resMap.get("TYPE") == null ? "" : resMap.get("TYPE").toString());
+					res2.setCurrencyValue(resMap.get("CURRENCY_ID") == null ? "" : resMap.get("CURRENCY_ID").toString());
+					res2.setAlloccurrencyId(resMap.get("CURRENCY_ID")==null?"":resMap.get("CURRENCY_ID").toString());
+					res2.setStatus(("R".equals(resMap.get("STATUS") == null ? "" : resMap.get("STATUS").toString())
 							? "Reverted"
 							: "Allocated"));
 					if ("Reverted".equalsIgnoreCase(req.getStatus())) {
-						res.setPayAmount(
+						res2.setPayAmount(
 								resMap.get("REVERSAL_AMOUNT") == null ? "" : resMap.get("REVERSAL_AMOUNT").toString());
-						res.setAllocatedDate(
-								resMap.get("REVERSAL_DATE") == null ? "" : resMap.get("REVERSAL_DATE").toString());
-						res.setAllocatedDate(
-								resMap.get("REVERSAL_DATE") == null ? "" : resMap.get("REVERSAL_DATE").toString());
-						res.setCheckPc((resMap.get("REVERSAL_AMOUNT_SIGN") == null ? ""
-								: resMap.get("REVERSAL_AMOUNT_SIGN").toString()));
+						res2.setAllocatedDate(resMap.get("REVERSAL_DATE") == null ? "" : resMap.get("REVERSAL_DATE").toString());
+						res2.setCheckPc((resMap.get("REVERSAL_AMOUNT_SIGN") == null ? "": resMap.get("REVERSAL_AMOUNT_SIGN").toString()));
 					} else {
-						res.setPayAmount(resMap.get("PAID_AMOUNT") == null ? "" : resMap.get("PAID_AMOUNT").toString());
-						res.setAllocatedDate(
-								resMap.get("INCEPTION_DATE") == null ? "" : resMap.get("INCEPTION_DATE").toString());
-						res.setAllocatedDate(resMap.get("INCEPTION_DATE")==null?"":resMap.get("INCEPTION_DATE").toString());
-						res.setCheckPc((resMap.get("PAID_AMOUNT_SIGN") == null ? ""
+						res2.setPayAmount(resMap.get("PAID_AMOUNT") == null ? "" : resMap.get("PAID_AMOUNT").toString());
+						res2.setAllocatedDate(resMap.get("INCEPTION_DATE")==null?"":resMap.get("INCEPTION_DATE").toString());
+						res2.setCheckPc((resMap.get("PAID_AMOUNT_SIGN") == null ? ""
 								: resMap.get("PAID_AMOUNT_SIGN").toString()));
 					}
-					res.setAdjustmentType(
+					res2.setAdjustmentType(
 							(resMap.get("ADJUSTMENT_TYPE") == null ? "" : resMap.get("ADJUSTMENT_TYPE").toString()));
 
 					args = new String[2];
 					args[0] = req.getBranchCode();
-					args[1] = req.getCurrecncyValue();
+					args[1] = res2.getCurrencyValue();
 					allocateView = queryImpl.selectList("payment.select.getSelCurrency", args);
 					if (!CollectionUtils.isEmpty(allocateView)) {
-						res.setCurrencyName((allocateView.get(0).get("CURRENCY_NAME") == null ? ""
+						res2.setCurrencyName((allocateView.get(0).get("CURRENCY_NAME") == null ? ""
 								: allocateView.get(0).get("CURRENCY_NAME").toString()));
 					}
 
@@ -682,10 +686,12 @@ public class TreasuryServiceImpl implements TreasuryService {
 
 					allocateView = queryImpl.selectList("payment.select.getExchRate", args);
 					if (!CollectionUtils.isEmpty(allocateView)) {
-						res.setExchangeRate((allocateView.get(0).get("EXCHANGE_RATE") == null ? ""
+						res2.setExchangeRate((allocateView.get(0).get("EXCHANGE_RATE") == null ? ""
 								: allocateView.get(0).get("EXCHANGE_RATE").toString()));
 					}
-
+					res2.setBrokerName(res.getBrokerName());
+					res2.setCedingCo(res.getCedingCo());
+					res2.setAllTillDate(res.getAllTillDate());
 					alllist.add(res);
 					if ("Reverted".equalsIgnoreCase(req.getStatus())) {
 						revertedList.add(res);
@@ -1152,14 +1158,15 @@ public class TreasuryServiceImpl implements TreasuryService {
 				for(int i = 0; i < dataList.size(); i++) {
 					
 					Map<String,Object> resMap = dataList.get(i);
-					res.setSerialNo(resMap.get("PAYMENT_RECEIPT_NO")==null?"":resMap.get("PAYMENT_RECEIPT_NO").toString());
-					res.setPaymentamount(resMap.get("PAID_AMT")==null?"":fm.formatter(resMap.get("PAID_AMT").toString()));
-					res.setCurrency(resMap.get("CURRENCY_NAME")==null?"":resMap.get("CURRENCY_NAME").toString());
-					res.setCedingCo(resMap.get("COMPANY_NAME")==null?"":resMap.get("COMPANY_NAME").toString());
-					res.setBroker(resMap.get("BROKER")==null?"":resMap.get("BROKER").toString());
-					res.setCedingId(resMap.get("CEDDINGID")==null?"":resMap.get("CEDDINGID").toString());
-					res.setBrokerId(resMap.get("BROKERID")==null?"":resMap.get("BROKERID").toString());
-					res.setRemarks(resMap.get("REMARKS")==null?"":resMap.get("REMARKS").toString());
+					GetReceiptAllocateRes res2 = new GetReceiptAllocateRes();
+					res2.setSerialNo(resMap.get("PAYMENT_RECEIPT_NO")==null?"":resMap.get("PAYMENT_RECEIPT_NO").toString());
+					res2.setPaymentamount(resMap.get("PAID_AMT")==null?"":fm.formatter(resMap.get("PAID_AMT").toString()));
+					res2.setCurrency(resMap.get("CURRENCY_NAME")==null?"":resMap.get("CURRENCY_NAME").toString());
+					res2.setCedingCo(resMap.get("COMPANY_NAME")==null?"":resMap.get("COMPANY_NAME").toString());
+					res2.setBroker(resMap.get("BROKER")==null?"":resMap.get("BROKER").toString());
+					res2.setCedingId(resMap.get("CEDDINGID")==null?"":resMap.get("CEDDINGID").toString());
+					res2.setBrokerId(resMap.get("BROKERID")==null?"":resMap.get("BROKERID").toString());
+					res2.setRemarks(resMap.get("REMARKS")==null?"":resMap.get("REMARKS").toString());
 					
 					args = new String[2];
 					args[0] = req.getBranchCode();
@@ -1194,10 +1201,10 @@ public class TreasuryServiceImpl implements TreasuryService {
 							allocateCurrencyList.add(inResMap);
 						}
 					}
-					res.setAllocateCurrencyList(allocateCurrencyList);
-					log.info("Result=>"+res.getAllocateCurrencyList());
+					res2.setAllocateCurrencyList(allocateCurrencyList);
+					log.info("Result=>"+res2.getAllocateCurrencyList());
 					if(allocateCurrencyList.size()>0) {
-						finalList.add(res);
+						finalList.add(res2);
 					}
 				}
 			}
@@ -1241,7 +1248,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 				}
 				
 				
-				list = queryImpl.selectList("GET_ALOCATION_TYPE",new String[]{req.getSerialNo()});
+				list = queryImpl.selectList("GET_ALOCATION_TYPE",new String[]{res.getSerialNo()});
 				
 				
 			
@@ -1256,8 +1263,8 @@ public class TreasuryServiceImpl implements TreasuryService {
 					selectQry = "payment.select.getRetAmtDtls";
 				}
 				args = new String[2];
-				args[0] = req.getSerialNo();
-				args[1] = req.getSerialNo();
+				args[0] = res.getSerialNo();
+				args[1] = res.getSerialNo();
 				list = queryImpl.selectList(selectQry, args);
 				if (!CollectionUtils.isEmpty(list)) {
 					res.setAllTillDate(fm.formatter(list.get(0).get("PAID_AMOUNT") == null ? ""
@@ -1329,40 +1336,42 @@ public class TreasuryServiceImpl implements TreasuryService {
 			for(int i=0 ,count=0; i<list.size(); i++,count++) {
 				
 				Map<String,Object> tempMap = list.get(i);
-				res.setContractNo(tempMap.get("CONTRACT_NO")==null?"":tempMap.get("CONTRACT_NO").toString());
-				res.setMode(tempMap.get("LAYER_NO")==null?"":tempMap.get("LAYER_NO").toString());
-				res.setProductName(tempMap.get("PRODUCT_NAME")==null?"":tempMap.get("PRODUCT_NAME").toString());
-				res.setTransactionNo(tempMap.get("TRANSACTION_NO")==null?"":tempMap.get("TRANSACTION_NO").toString());
-				res.setInceptiobDate(tempMap.get("ADATE")==null?"":tempMap.get("ADATE").toString());
-				res.setNetDue(tempMap.get("NETDUE")==null?"":tempMap.get("NETDUE").toString());
-				res.setPayAmount(tempMap.get("PAID_AMOUNT_OC")==null?"":tempMap.get("PAID_AMOUNT_OC").toString());
-				res.setAccPremium(tempMap.get("ACC_PREMIUM")==null?"":tempMap.get("ACC_PREMIUM").toString());
-				res.setAccClaim(tempMap.get("ACC_CLAIM")==null?"":tempMap.get("ACC_CLAIM").toString());
-				res.setCheckYN(tempMap.get("CHECKYN")==null?"":tempMap.get("CHECKYN").toString());
-				res.setCheckPC(tempMap.get("BUSINESS_TYPE")==null?"":tempMap.get("BUSINESS_TYPE").toString());
-				res.setCedingCompanyName(tempMap.get("CEDING_COMPANY_NAME")==null?"":tempMap.get("CEDING_COMPANY_NAME").toString());
-				res.setAllocType(req.getAllocType());
-				List<GetTransContractListReq> filterTrack = req.getTransContractListReq().stream().filter( o -> res.getTransactionNo().equalsIgnoreCase(o.getTransactionNo()) ).collect(Collectors.toList());
+				GetTransContractRes res2 = new GetTransContractRes();
+				res2.setContractNo(tempMap.get("CONTRACT_NO")==null?"":tempMap.get("CONTRACT_NO").toString());
+				res2.setMode(tempMap.get("LAYER_NO")==null?"":tempMap.get("LAYER_NO").toString());
+				res2.setProductName(tempMap.get("PRODUCT_NAME")==null?"":tempMap.get("PRODUCT_NAME").toString());
+				res2.setTransactionNo(tempMap.get("TRANSACTION_NO")==null?"":tempMap.get("TRANSACTION_NO").toString());
+				res2.setInceptiobDate(tempMap.get("ADATE")==null?"":tempMap.get("ADATE").toString());
+				res2.setNetDue(tempMap.get("NETDUE")==null?"":tempMap.get("NETDUE").toString());
+				res2.setPayAmount(tempMap.get("PAID_AMOUNT_OC")==null?"":tempMap.get("PAID_AMOUNT_OC").toString());
+				res2.setAccPremium(tempMap.get("ACC_PREMIUM")==null?"":tempMap.get("ACC_PREMIUM").toString());
+				res2.setAccClaim(tempMap.get("ACC_CLAIM")==null?"":tempMap.get("ACC_CLAIM").toString());
+				res2.setCheckYN(tempMap.get("CHECKYN")==null?"":tempMap.get("CHECKYN").toString());
+				res2.setCheckPC(tempMap.get("BUSINESS_TYPE")==null?"":tempMap.get("BUSINESS_TYPE").toString());
+				res2.setCedingCompanyName(tempMap.get("CEDING_COMPANY_NAME")==null?"":tempMap.get("CEDING_COMPANY_NAME").toString());
+				res2.setAllocType(req.getAllocType());
+				List<GetTransContractListReq> filterTrack = req.getTransContractListReq().stream().filter( o -> res2.getTransactionNo().equalsIgnoreCase(o.getTransactionNo()) ).collect(Collectors.toList());
 				if(!CollectionUtils.isEmpty(filterTrack)) {
-					res.setReceivePayAmounts(filterTrack.get(0).getReceivePayAmounts());
-					res.setPreviousValue(filterTrack.get(0).getReceivePayAmounts());
-					res.setPayAmounts(filterTrack.get(0).getReceivePayAmounts());
-					res.setChkBox("true");
+					res2.setReceivePayAmounts(filterTrack.get(0).getReceivePayAmounts());
+					res2.setPreviousValue(filterTrack.get(0).getReceivePayAmounts());
+					res2.setPayAmounts(filterTrack.get(0).getReceivePayAmounts());
+					res2.setChkBox("true");
 			
 				}
 				else {
-					res.setReceivePayAmounts("");
-					res.setPreviousValue("");
-					res.setPayAmounts("");
-					res.setChkBox("false");
+					res2.setReceivePayAmounts("");
+					res2.setPreviousValue("");
+					res2.setPayAmounts("");
+					res2.setChkBox("false");
 				}
-				res.setCount(String.valueOf(count));
-				finalList.add(res);
+				res2.setCount(String.valueOf(count));
+				finalList.add(res2);
 			}
 		/*	res.setReceivePayAmounts(receivePayAmounts);
 			res.setPayAmounts(receivePayAmounts);
 			res.setChkBox(chkbox);
 			res.setPreviousValue(previousValue);*/
+			finalList.add(res);
 			response.setCommonResponse(finalList);
 			response.setMessage("Success");
 			response.setIsError(false);
@@ -1814,7 +1823,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 				tempBean.setCedingCo(resMap.get("COMPANY_NAME")==null?"":resMap.get("COMPANY_NAME").toString());
 				tempBean.setBroker(resMap.get("BROKER")==null?"":resMap.get("BROKER").toString());
 				tempBean.setName(resMap.get("PAYMENT_RESPONSE")==null?"":resMap.get("PAYMENT_RESPONSE").toString());
-				//tempBean.setPayamount(resMap.get("PAID_AMT")==null?"":DropDownControllor.formatter(resMap.get("PAID_AMT").toString()));
+				tempBean.setPayamount(resMap.get("PAID_AMT")==null?"":fm.formatter(resMap.get("PAID_AMT").toString()));
 				tempBean.setBrokerid(resMap.get("BROKER_ID")==null?"":resMap.get("BROKER_ID").toString());
 				tempBean.setSerialno(resMap.get("REVERSALTRANSNO")==null?"":resMap.get("REVERSALTRANSNO").toString());
 				tempBean.setRemarks(resMap.get("REMARKS")==null?"":resMap.get("REMARKS").toString());
@@ -2193,6 +2202,26 @@ public class TreasuryServiceImpl implements TreasuryService {
 			}
 			res.setTxtTotalAmt(String.valueOf(totAmt));
 			
+			if(list.size()!=0) {
+				//bean.getRequest().setAttribute("HidRowCnt",list.size());
+				res.setHideRowCnt(String.valueOf(list.size()));
+				List<String> tempList=new ArrayList<String>();
+				if(list.size()>0) {
+					for(int i=0;i<list.size();i++){
+						tempList.add(String.valueOf(i));
+					}
+				}
+				res.setPaymentList(tempList);
+			}
+			else {
+				res.setHideRowCnt("3");
+				List<String> tempList=new ArrayList<String>();
+				for(int i=0;i<3;i++){
+					tempList.add(String.valueOf(i));
+				}
+				res.setPaymentList(tempList);
+			}
+			
 			res.setListSecondPageInfo(infos);
 			response.setCommonResponse(finalList);
 			response.setMessage("Success");
@@ -2247,7 +2276,6 @@ public class TreasuryServiceImpl implements TreasuryService {
 						 	
 							args[6]= filterTrack.get(0).getTransactionNo();
 						 	args[7]="P";
-						 	queryImpl.updateQuery("payment.update.rskPremAlloDtls", args);
 						 	String[] updateArgs = new String[5];
 							
 						 	updateArgs[0] = filterTrack.get(0).getTransactionNo();
@@ -2255,13 +2283,15 @@ public class TreasuryServiceImpl implements TreasuryService {
 						 	updateArgs[2] = req.getBranchCode();
 							updateArgs[3] = form.getContractno();
 							updateArgs[4] = form.getTransactionno();
-						 	queryImpl.updateQuery("payment.update.preSetStatus", updateArgs);
+							queryImpl.updateQuery("payment.update.rskPremAlloDtls", updateArgs);
+							
 						 	updateArgs = new String[5];
 							updateArgs[0] = "Allocated";
 							updateArgs[1] = req.getLoginid();
 						 	updateArgs[2] = req.getBranchCode();
 							updateArgs[3] = form.getContractno();
 							updateArgs[4] = form.getTransactionno();
+							queryImpl.updateQuery("payment.update.preSetStatus", updateArgs);
 
 						 	a=a+Double.parseDouble(filterTrack.get(0).getTransactionNo());
 						}
@@ -2269,7 +2299,7 @@ public class TreasuryServiceImpl implements TreasuryService {
 							//args[6]=form.getAccClaim();
 							args[6] = filterTrack.get(0).getTransactionNo();
 						 	args[7]="C";
-							queryImpl.updateQuery("payment.update.claimPymtAlloDtls", args);
+
 							String[] updateArgs = new String[5];
 							//updateArgs[0] = form.getAccClaim();
 							updateArgs[0] = filterTrack.get(0).getTransactionNo();
@@ -2277,14 +2307,15 @@ public class TreasuryServiceImpl implements TreasuryService {
 						 	updateArgs[2] = req.getLoginid();
 							updateArgs[3] = form.getContractno();
 							updateArgs[4] = form.getTransactionno();
+							queryImpl.updateQuery("payment.update.claimPymtAlloDtls", updateArgs);
 
-							queryImpl.updateQuery("payment.update.claimSetStatus", updateArgs);
 							updateArgs = new String[5];
 							updateArgs[0] = "Allocated";
 							updateArgs[1] = req.getBranchCode();
 						 	updateArgs[2] = req.getLoginid();
 							updateArgs[3] = form.getContractno();
 							updateArgs[4] = form.getTransactionno();
+							queryImpl.updateQuery("payment.update.claimSetStatus", updateArgs);
 							b = b + Double.parseDouble(filterTrack.get(0).getTransactionNo());
 						}
 					args[8]="Y";
@@ -2321,7 +2352,10 @@ public class TreasuryServiceImpl implements TreasuryService {
 			updateArgs[4] = req.getAlloccurrencyId();
 		    queryImpl.updateQuery("payment.update.AlloTranDtls", updateArgs);
 
-			queryImpl.updateQuery("payment.update.rskPremChkyn", updateArgs);
+		    String [] str = new String[2];
+		    str [0] = "";
+		    str [1] = "";
+			queryImpl.updateQuery("payment.update.rskPremChkyn",str);
 			response.setMessage("Success");
 			response.setIsError(false);
 		}
@@ -2439,5 +2473,28 @@ public class TreasuryServiceImpl implements TreasuryService {
 		return transDate;
 		}
 
+		public PaymentRecieptRes1 receiptdetail(PaymentRecieptReq req) {
+			PaymentRecieptRes1 resp=new PaymentRecieptRes1();
+			List<GenerationReq> lres=new ArrayList<GenerationReq>();
+			try {
+				for(int i=0;i<3;i++){
+				GenerationReq res=new GenerationReq();
+				if(i==0) {
+				res.setCurrencyValList(req.getCurrency());
+				String PaymentAmt = req.getPaymentAmount().replace(",", "");
+				res.setPayamountValList(fm.formatter(PaymentAmt));
+				res.setSetExcRateValList(fm.formatter("1"));
+				}
+				lres.add(res);
+				
+				}
+				resp.setGenerationReq(lres);
+			} catch (Exception e) {
+				e.printStackTrace();
+				resp.setMessage("Failed");
+				resp.setIsError(true);
+			}
+			return resp;
+		}
 
 	}

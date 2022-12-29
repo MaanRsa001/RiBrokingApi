@@ -74,6 +74,7 @@ import com.maan.insurance.model.res.AllocateTransactionListRes;
 import com.maan.insurance.model.res.CurrecyAmountListsRes;
 import com.maan.insurance.model.res.GenerationListRes;
 import com.maan.insurance.model.res.PaymentRecieptRes;
+import com.maan.insurance.model.res.PaymentRecieptRes1;
 import com.maan.insurance.model.res.ReceiptTreasuryListRes;
 import com.maan.insurance.model.res.ReceiptTreasuryRes;
 import com.maan.insurance.model.res.ReceiptViewListsRes;
@@ -345,4 +346,13 @@ public class TreasuryController {
 		return treasuryservice.getAllocateTransaction(req);
 	}
 
+	@PostMapping("/receipt/detail")
+	public PaymentRecieptRes1 receiptdetail(@RequestBody PaymentRecieptReq req) throws CommonValidationException {
+		List<ErrorCheck> error=treasuryValidation.PaymentRecieptvalidate(req);
+		if(error!=null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return treasuryservice.receiptdetail(req);
+	}
+	
 }

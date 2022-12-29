@@ -10,8 +10,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Tuple;
@@ -45,6 +53,7 @@ import com.maan.insurance.model.repository.RskPremiumDetailsRIRepository;
 import com.maan.insurance.model.repository.RskPremiumDetailsRepository;
 import com.maan.insurance.model.repository.RskPremiumDetailsTempRepository;
 import com.maan.insurance.model.repository.TmasBranchMasterRepository;
+import com.maan.insurance.model.req.propPremium.CashLossmailTriggerReq;
 import com.maan.insurance.model.req.propPremium.ClaimTableListReq;
 import com.maan.insurance.model.req.propPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetCashLossCreditReq1;
@@ -58,6 +67,7 @@ import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertLossReserved;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
+import com.maan.insurance.model.req.propPremium.InsertReverseCashLossCreditReq;
 import com.maan.insurance.model.req.propPremium.PremiumEditReq;
 import com.maan.insurance.model.req.propPremium.SubmitPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.SubmitPremiumReservedReq1;
@@ -123,6 +133,8 @@ import com.maan.insurance.model.res.propPremium.premiumUpdateMethodRes1;
 import com.maan.insurance.model.res.propPremium.ViewPremiumDetailsRIReq;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes1;
+import com.maan.insurance.model.res.propPremium.getCurrencyShortNameRes;
+import com.maan.insurance.model.res.propPremium.getReverseCassLossCreditRes;
 import com.maan.insurance.model.res.proportionality.CommonSaveRes;
 import com.maan.insurance.model.res.retro.CommonResponse;
 import com.maan.insurance.service.impl.QueryImplemention;
@@ -3818,6 +3830,393 @@ public class PropPremiumServiceImple implements PropPremiumService {
 		return res;
 
 	}
+	
+	public CommonResponse InsertCashLossCredit(InsertPremiumReq req) {
+		CommonResponse response = new CommonResponse();
+			try {
+				String query = "";
+				if(StringUtils.isNotBlank(req.getClaimPaymentNo())){
+				String[] ClaimPayNo=req.getClaimPaymentNo().split(",");
+				String[] creditAmountCLC=req.getCreditAmountCLC().split(",");
+				String[] creditAmountCLD=req.getCreditAmountCLD().split(",");
+				String[] CLCsettlementRate=req.getCLCsettlementRate().split(",");
+				String[] cldAmount=req.getCLDAmount().split(",");
+				for(int i=0;i<ClaimPayNo.length;i++) {
+				if(StringUtils.isNotBlank(ClaimPayNo[i])){
+				GetCashLossCreditRes cashLossList=getCassLossCredit(req);
+				GetCashLossCreditRes1 form= cashLossList.getCommonResponse().get(0);
+				if(ClaimPayNo[i].contains(form.getClaimPaymentNo())) {
+				String[] args=new String[17];
+				args[0]=req.getBranchCode();
+				args[1]=form.getContNo();
+				args[2]=form.getClaimNumber();
+				args[3]=form.getClaimPaymentNo();
+				args[4]=form.getCurrencyId();
+				args[5]=creditAmountCLC[i];
+				args[6]=form.getCurrencyValue();
+				args[7]=CLCsettlementRate[i];
+				args[8]=creditAmountCLD[i];
+				args[9]=req.getTransactionNo();
+				args[10]=req.getTransaction();
+				args[11]=req.getBranchCode();
+				args[12] = req.getRequestNo();
+				if("submit".equalsIgnoreCase(req.getButtonStatus())){
+					args[13] = "A";
+				}else{
+					args[13] = "P";
+				}
+				args[14] = req.getProposalNo();
+				args[15] = cldAmount[i];
+				args[16] = req.getCashlossType();
+				query = "insert.cash.loss.credit";
+				queryImpl.selectList(query, args);
+				if("submit".equalsIgnoreCase(req.getButtonStatus())){
+					query = "update.claim.payment";
+				 	String[] arg=new String[]{form.getContNo(),req.getBranchCode(),req.getRequestNo(),"A",form.getClaimNumber(),form.getClaimPaymentNo(),form.getContNo(),form.getClaimNumber(),form.getClaimPaymentNo()};
+				 	queryImpl.selectList(query, arg);
+					}
+				}
+			}
+		}
+	}
+			response.setMessage("Success");
+			response.setIsError(false);
+		    }catch (Exception e) {
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+			return response;
+	}
+	
+	public CommonResponse InsertReverseCashLossCredit(InsertReverseCashLossCreditReq req) {
+		CommonResponse response = new CommonResponse();
+		 try {
+			String query="";
+			 List<Map<String, Object>>result=new ArrayList<>();
+			 String clc="",cld="",paymentNo="",claimNo="";
+			if(StringUtils.isNotBlank(req.getCashlosstranId())){
+				query="GET_REVERSE_TRANS_LIST";
+				String [] obj = new String[2];
+				obj[0]= req.getProposalNo();
+				obj[1]= req.getCashlosstranId();
+				result = queryImpl.selectList(query, obj);
+				for(int i=0;i<result.size();i++) {
+					Map<String,Object>map=result.get(i);
+					clc=map.get("CREDITAMOUNTCLC")==null?"0":map.get("CREDITAMOUNTCLC").toString();
+					cld=map.get("CREDITAMOUNTCLD")==null?"0":map.get("CREDITAMOUNTCLD").toString();
+					paymentNo=map.get("CLAIMPAYMENT_NO")==null?"0":map.get("CLAIMPAYMENT_NO").toString();
+					claimNo=map.get("CLAIM_NO")==null?"0":map.get("CLAIM_NO").toString();
+					String[] args=new String[7];
+					args[0]=req.getCashlossType();
+					args[1]=clc;
+					args[2]=cld;
+					args[3]="0";
+					args[4]="0";
+					args[5]=map.get("CREDITTRXNNO")==null?"0.0":map.get("CREDITTRXNNO").toString();
+					args[6]=map.get("CLC_NO")==null?"0.0":map.get("CLC_NO").toString();
+					query="UPDATE_REVERSE_CASH_LOSS";
+					queryImpl.selectList(query, args);
+					query = "UPDATE_CASH_LOSS_PAYMENT";
+				 	String[] arg=new String[]{clc,req.getContNo(),claimNo,paymentNo};
+				 	queryImpl.selectList(query, arg);
+				}
+			}
+			response.setMessage("Success");
+			response.setIsError(false);
+		    }catch (Exception e) {
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+			return response;
+	}
+	
+	public CommonResponse CashLossmailTrigger(CashLossmailTriggerReq req) {
+		CommonResponse response = new CommonResponse();
+		try {
+			String result="";
+			String[] args = new String[3];
+			args[0] = req.getContNo();
+			args[1] = req.getContNo();
+			args[2] = req.getDepartmentId();
+			String selectQry = "GET_CASH_LOSS_CREADIT_MAIL";
+			List<Map<String,Object>> list = queryImpl.selectList(selectQry, args);
+			if(list!=null && list.size()>0) {
+				String query = "GET_CASSLOSS_ALLOCATE_COUNT";
+				int count = queryImpl.updateQuery(query, new String[] {req.getProposalNo()});
+				if(count==0) {
+					result = sendCashLossMail(list,req);
+				}else {
+					String query1="GET_CASSLOSS_ALLOCATE_AMOUNT_COUNT";
+					int count1 = queryImpl.updateQuery(query1,new String[] {req.getProposalNo(),req.getTransactionNo()});
+					if(count1>0) {
+						selectQry = "GET_REVERSE_TRANS_LIST";
+						list = queryImpl.selectList(selectQry,new String[] {req.getProposalNo(),req.getTransactionNo()});
+						result = sendCashLossMail(list,req);
+					}
+				} 
+			}
+			response.setMessage("Success");
+			response.setIsError(false);
+		    }catch (Exception e) {
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+			return response;
+	}
+	
+	public String sendCashLossMail(List<Map<String, Object>> list, CashLossmailTriggerReq req) {
+		try {
+			List<Map<String, Object>>listinfo=null;
+			Map<String, String> mapt=getMailDetails("51");
+			listinfo=getMailCCInfo("CASH_LOSS",req.getBranchCode());
+			Map<String, String> details=new HashMap<String, String>();
+			if(mapt != null && listinfo!=null && listinfo.size()>0){
+				Map<String,Object>map=listinfo.get(0);
+				String hostName=(String)mapt.get("SMTP_HOST");
+				String user = mapt.get("SMTP_USER");
+				String pwd = mapt.get("SMTP_PWD");
+				String port=mapt.get("SMTP_PORT");
+				String mailform = mapt.get("SMTP_ADDRESS");
+				String shortAddress = mapt.get("SMTP_SHORT_ADDRESS");
+				String subject = "Cash Loss Credit Mail";
+				String toAddress = (String) map.get("EMAIL_TO");
+				String ccAddress = (String) map.get("EMAIL_CC");
+				
+				details.put("TRANSACTION_NO", req.getTransactionNo());
+				details.put("LOGIN_ID", req.getLoginId());
+				details.put("CONTRACT_NO", req.getContNo());
+				details.put("TRANSACTION_DATE", req.getTransaction());
+				details.put("BRANCH_CODE", req.getBranchCode());
+				details.put("CLC_CURRENCY", req.getCurrencyId());
+				if(toAddress!=null && !"".equals(toAddress)){
+					String[] toAddresses = (toAddress.indexOf(",")!=-1)?toAddress.split(","):new String[]{toAddress};
+					String[] ccAddresses = new String[0];
+					if(ccAddress!=null && !"".equals(ccAddress)){
+						ccAddresses = (ccAddress.indexOf(",")!=-1)?ccAddress.split(","):new String[]{ccAddress};
+					}
+				
+				String msg=frameTemplate(details,list);
+				sendResponseMail(hostName, user, pwd, mailform, subject, msg, toAddresses, ccAddresses, shortAddress,port);
+				}
+}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public Map<String, String> getMailDetails(String appId){
+    	Map<String, String> details = new HashMap<String, String>();
+    	try {
+    		String  query= "GET_MAIL_DETAILS";
+        	List<Map<String, Object>> list = queryImpl.selectList(query, new String[]{appId});
+        	if(list != null && list.size()>0){
+	        	details = (Map)list.get(0);
+        	}
+        }catch(Exception e){
+        }
+    	return details;
+  }
+	
+	private String frameTemplate(Map<String, String> details, List<Map<String, Object>> list) {
+		DecimalFormat d = new DecimalFormat("#,###");
+		String messageContent="";
+		try {
+			String query = "GET_CURRENCY_NAME";
+			String branchcode=details.get("BRANCH_CODE")==null?"":details.get("BRANCH_CODE").toString();
+			messageContent="Dear Management,<br/><br/><br/>\r\n" + 
+			"\r\n" + 
+			"A transaction "+details.get("TRANSACTION_NO")+" has been processed by "+details.get("LOGIN_ID")+" on "+details.get("TRANSACTION_DATE")+" under contract number "+details.get("CONTRACT_NO")+".<br/>\r\n" + 
+			"Below were the list of pending allocations in Cash Loss Credit module on the transaction date for contract "+details.get("CONTRACT_NO")+" (including previous risk's pending credits).<br/>\r\n" + 
+			"<!DOCTYPE html>\r\n" + 
+					"<html lang=\"en\">\r\n" + 
+					"<body>\r\n" + 
+					"    <div style=\"width: 80%;\">\r\n" + 
+					"        <p style=\"color: #003286;font: small/ 1.5 Arial,Helvetica,sans-serif;font-size: 25px;font-weight: bold;text-decoration: underline;\">Below were the list of pending allocations in Cash Loss Credit module on the transaction date for contract "+details.get("CONTRACT_NO")+" (including previous risk's pending credits).</p>\r\n" + 
+					"        <table style=\"width:100%;border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">\r\n" + 
+					"            <tr>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">S No</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">Contract No</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">Claim No</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">Claim Payment No</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">Paid Date</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">CLD Currency</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">CLD Amount</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">CLC Currency</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">Credit Amount in CLC Currency</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">Credit Amount in CLD Currency</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">CLC Settlement rate</th>\r\n" + 
+					"                <th style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;background-color: #003286;color: white;font-weight: bold;\">Status</th>\r\n" + 
+					"            </tr>\r\n" ;
+			
+			
+			for(int i=0;i<list.size();i++) {
+				Map<String,Object>map=list.get(i);
+				String cldcurrencyName = queryImpl.selectList(query, new String[]{branchcode,map.get("CLDCURRENCY_ID")==null?"":map.get("CLDCURRENCY_ID").toString()}).toString();
+				String clccurrencyName = queryImpl.selectList(query, new String[]{branchcode,details.get("CLC_CURRENCY")==null?"":details.get("CLC_CURRENCY").toString()}).toString();
+				String status="";
+				Double cldamount=map.get("CLD_AMOUNT")==null?0d:Double.parseDouble(map.get("CLD_AMOUNT").toString());
+				Double creditcldamount=map.get("CREDITAMOUNTCLD")==null?0d:Double.parseDouble(map.get("CREDITAMOUNTCLD").toString());
+				if(cldamount==creditcldamount) {
+					status="Fully Credited";
+				}else if(cldamount<creditcldamount) {
+					status="Partially Credit";
+				}else if(creditcldamount<=0) {
+					status="Unallocated";
+				}
+					messageContent+="<tr>\r\n"+
+				"				 <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(i+1)+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("CONTRACT_NO")==null?"":map.get("CONTRACT_NO").toString())+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("CLAIM_NO")==null?"":map.get("CLAIM_NO").toString())+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("CLAIMPAYMENT_NO")==null?"":map.get("CLAIMPAYMENT_NO").toString())+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("CREDITDATE")==null?"":map.get("CREDITDATE").toString())+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(cldcurrencyName)+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("CLD_AMOUNT")==null?"":d.format(Double.parseDouble(map.get("CLD_AMOUNT").toString())))+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(clccurrencyName)+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("CREDITAMOUNTCLC")==null?"":d.format(Double.parseDouble(map.get("CREDITAMOUNTCLC").toString())))+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("CREDITAMOUNTCLD")==null?"":d.format(Double.parseDouble(map.get("CREDITAMOUNTCLD").toString())))+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(map.get("EXCHANGE_RATE")==null?"":map.get("EXCHANGE_RATE").toString())+"</td>\r\n" + 
+				"                <td style=\"border: 1px solid #003286; font: small/ 1.5 Arial,Helvetica,sans-serif;\">"+(status)+"</td>\r\n" + 
+				"</tr>\r\n";
+			}
+			messageContent+="        </table>\r\n" + 
+				"    </div>\r\n" + 
+				"</body>\r\n" + 
+				"\r\n" + 
+				"</html>";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	
+	return messageContent.toString();
+	}
+	
+	private List<Map<String, Object>> getMailCCInfo(String type, String branchCode) {
+    	List<Map<String, Object>>list=null;
+    	try {
+    		String  query= "GET_MAILCC_INFO";
+        	 list = queryImpl.selectList(query,new String[]{type,branchCode});
+        	
+        }catch(Exception e){
+        }
+    	return list;
+	}
+	
+	 public void sendResponseMail(final String SMTP_HOST_NAME, final String user,  final String pwd, final String SMTP_MAIL_FROM, final String subject,
+	    		final String message, final String[] toAddress, final String[] ccAddress, final String SMTP_SHORT_ADDRESS,final String SMTP_PORT){
+		  	String SMTP_AUTH_USER; 
+			String SMTP_AUTH_PWD;
+	    	SMTP_AUTH_USER = user;
+	    	SMTP_AUTH_PWD = pwd;
+	    	try{
+		    	Properties props = new Properties();
+		    	props.setProperty("mail.transport.protocol", "smtp");
+				props.put("mail.smtp.host", SMTP_HOST_NAME);
+				props.put("mail.smtp.port", SMTP_PORT);
+				props.put("mail.smtp.starttls.enable", "true");
+				 props.put("mail.debug", "true");
+				Session session = null; 
+				if(SMTP_AUTH_PWD != null && !"".equals(SMTP_AUTH_PWD.trim())){
+					props.put("mail.smtp.auth", "true");
+					Authenticator auth = new SMTPAuthenticator();
+					session = Session.getInstance(props, auth);
+				}else{
+					props.put("mail.smtp.auth", "false");
+					session = Session.getInstance(props);
+				}
+				session.setDebug(false);
+				Message msg1 = new MimeMessage(session);
+				InternetAddress addressFrom = new InternetAddress(SMTP_MAIL_FROM, SMTP_SHORT_ADDRESS);
+				msg1.setFrom(addressFrom);
+				if(toAddress != null && toAddress.length>0){
+					InternetAddress[] addressTo = new InternetAddress[toAddress.length];			
+					for (int i = 0; i < toAddress.length; i++){
+						addressTo[i] = new InternetAddress(toAddress[i]);
+						msg1.addRecipient(Message.RecipientType.TO, addressTo[i]);
+					}
+				}
+				if(ccAddress != null && ccAddress.length>0){
+					InternetAddress[] addressToCC = new InternetAddress[ccAddress.length];			
+					for(int i=0;i<ccAddress.length;i++){
+						addressToCC[i] = new InternetAddress(ccAddress[i]);
+						msg1.addRecipient(Message.RecipientType.CC, addressToCC[i]);
+					}
+				}
+				msg1.setSubject(subject);
+				msg1.setContent(message, "text/html");
+				System.out.println(msg1);
+				Transport.send(msg1);
+			}catch(Exception e){
+				System.out.println(e);
+			}
+	    }
+	  
+	  private class SMTPAuthenticator extends javax.mail.Authenticator{
+		  	String SMTP_AUTH_USER = null; 
+			String SMTP_AUTH_PWD = null;
+			public PasswordAuthentication getPasswordAuthentication(){
+				String username = SMTP_AUTH_USER;
+				String password = SMTP_AUTH_PWD;
+				return new PasswordAuthentication(username, password);
+			}
+		}
+	
+	  public getReverseCassLossCreditRes getReverseCassLossCredit(String proposalNo, String cashlosstranId) {
+			getReverseCassLossCreditRes res = new getReverseCassLossCreditRes();
+		     double value1=0.0;
+		     try {
+				List<Map<String, Object>>result=new ArrayList<>();
+					String query = "GET_REVERSE_TRANS_LIST";
+					result = queryImpl.selectList(query,new String[] {proposalNo,cashlosstranId});
+					for(int i=0;i<result.size();i++) {
+						Map<String,Object>map=result.get(i);
+						value1=value1+(map.get("CREDITAMOUNTCLC")==null?0.0:Double.parseDouble(map.get("CREDITAMOUNTCLC").toString()));
+								
+						}
+					res.setResponse(String.valueOf(value1));
+					res.setMessage("Success");
+					res.setIsError(false);
+				    }catch (NumberFormatException e) {
+						log.error(e);
+						e.printStackTrace();
+						res.setMessage("Failed");
+						res.setIsError(true);
+					}
+					return res;
+			}
+
+		public getCurrencyShortNameRes getCurrencyShortName(String currencyId, String branchCode) {
+			getCurrencyShortNameRes response = new getCurrencyShortNameRes();
+			String res = "";
+			try {
+			List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+					String query = "GET_SHRT_NAME";
+					String args[] = new String[2];
+					args[0] = currencyId;
+					args[1] = branchCode;
+					
+					list = queryImpl.selectList(query, args);
+					if(!CollectionUtils.isEmpty(list)){
+						res = list.get(0).get("SHORT_NAME")==null?"":list.get(0).get("SHORT_NAME").toString();
+						}
+					
+					response.setResponse(String.valueOf(res));
+					response.setMessage("Success");
+					response.setIsError(false);
+				    }catch (Exception e) {
+						log.error(e);
+						e.printStackTrace();
+						response.setMessage("Failed");
+						response.setIsError(true);
+					}
+					return response;
+			}
 }
 
 	

@@ -62,6 +62,8 @@ public class ReciptListRes {
 	@JsonProperty("RecpayOpenYN")
 	private String recpayOpenYN;
 
+	@JsonProperty("Payamount")
+	private String payamount;
 	
 			
 	@JsonProperty("PaymentNoSearch")

@@ -1,16 +1,15 @@
-package com.maan.insurance.model.res.retro;
+package com.maan.insurance.model.res.proportionality;
 
 import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.maan.insurance.error.ErrorCheck;
 
 import lombok.Data;
+
 @Data
-public class CommonResponse {
+public class checkAvialabilityRes {
 	
 	@JsonProperty("Result")
-	private String serilno;
+	private String response;
 	
 	@JsonProperty("Message")
 	private String message;
@@ -19,7 +18,7 @@ public class CommonResponse {
 	private Boolean isError;
 
 	@JsonProperty("ErrorMessage")
-	private List<ErrorCheck> errorMessage;
+	private List<Error> errorMessage;
 	
 	@JsonProperty("ErroCode")
 	private int erroCode;

@@ -62,6 +62,7 @@ import com.maan.insurance.model.res.AllocateTransactionListRes;
 import com.maan.insurance.model.res.CurrecyAmountListsRes;
 import com.maan.insurance.model.res.GenerationListRes;
 import com.maan.insurance.model.res.PaymentRecieptRes;
+import com.maan.insurance.model.res.PaymentRecieptRes1;
 import com.maan.insurance.model.res.ReceiptTreasuryListRes;
 import com.maan.insurance.model.res.ReceiptTreasuryRes;
 import com.maan.insurance.model.res.ReceiptViewListsRes;
@@ -130,5 +131,7 @@ public interface TreasuryService {
 	SecondPageInfoRes getSecondPageInfo(SecondPageInfoReq req);
 
 	CommonResponse getAllocateTransaction(GetTransContractReq req);
+
+	PaymentRecieptRes1 receiptdetail(PaymentRecieptReq req);
 
 }

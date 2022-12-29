@@ -262,4 +262,21 @@ public class InsertPremiumReq {
 	@JsonProperty("M3OC")
 	private String m3oc;
 	
+	@JsonProperty("ClaimPaymentNo")
+	private String claimPaymentNo;
+	
+	@JsonProperty("CreditAmountCLC")
+	private String creditAmountCLC;
+	
+	@JsonProperty("CreditAmountCLD")
+	private String creditAmountCLD;
+	
+	@JsonProperty("CLCsettlementRate")
+	private String cLCsettlementRate;
+	
+	@JsonProperty("CLDAmount")
+	private String cLDAmount;
+	
+	@JsonProperty("CashlossType")
+	private String cashlossType;
 }

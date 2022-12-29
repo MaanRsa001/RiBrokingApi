@@ -2,6 +2,7 @@ package com.maan.insurance.service.propPremium;
 
 import org.springframework.stereotype.Service;
 
+import com.maan.insurance.model.req.propPremium.CashLossmailTriggerReq;
 import com.maan.insurance.model.req.propPremium.ClaimTableListReq;
 import com.maan.insurance.model.req.propPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetConstantPeriodDropDownReq;
@@ -13,6 +14,7 @@ import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
+import com.maan.insurance.model.req.propPremium.InsertReverseCashLossCreditReq;
 import com.maan.insurance.model.req.propPremium.PremiumEditReq;
 import com.maan.insurance.model.req.propPremium.SubmitPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.ViewPremiumDetailsRIRes;
@@ -46,6 +48,8 @@ import com.maan.insurance.model.res.propPremium.PremiumEditRes;
 import com.maan.insurance.model.res.propPremium.SubmitPremiumReservedRes;
 import com.maan.insurance.model.res.propPremium.ViewPremiumDetailsRIReq;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes;
+import com.maan.insurance.model.res.propPremium.getCurrencyShortNameRes;
+import com.maan.insurance.model.res.propPremium.getReverseCassLossCreditRes;
 import com.maan.insurance.model.res.propPremium.premiumUpdateMethodRes;
 import com.maan.insurance.model.res.retro.CommonResponse;
 
@@ -115,5 +119,15 @@ public interface PropPremiumService {
 	ViewRIPremiumListRes viewRIPremiumList(GetRIPremiumListReq req);
 
 	CommonResponse updateRIStatus(GetRIPremiumListReq req);
+
+	CommonResponse InsertCashLossCredit(InsertPremiumReq req);
+
+	CommonResponse InsertReverseCashLossCredit(InsertReverseCashLossCreditReq req);
+
+	CommonResponse CashLossmailTrigger(CashLossmailTriggerReq req);
+
+	getReverseCassLossCreditRes getReverseCassLossCredit(String proposalNo, String cashlosstranId);
+
+	getCurrencyShortNameRes getCurrencyShortName(String currencyId, String branchCode);
 
 }

@@ -33,6 +33,7 @@ import com.maan.insurance.model.req.claim.InsertCliamDetailsMode2Req;
 import com.maan.insurance.model.req.claim.InsertCliamDetailsMode3Req;
 import com.maan.insurance.model.req.claim.InsertCliamDetailsMode8Req;
 import com.maan.insurance.model.req.claim.ProposalNoReq;
+import com.maan.insurance.model.req.claim.claimNoListReq;
 import com.maan.insurance.model.res.ClaimPaymentListRes;
 import com.maan.insurance.model.res.ClaimlistRes;
 import com.maan.insurance.model.res.GetShortnameRes;
@@ -81,6 +82,7 @@ import com.maan.insurance.model.res.claim.InsertCliamDetailsMode8Res;
 import com.maan.insurance.model.res.claim.ProductIdListRes;
 import com.maan.insurance.model.res.claim.ProductIdListRes1;
 import com.maan.insurance.model.res.claim.ProposalNoRes;
+import com.maan.insurance.model.res.claim.claimNoListRes;
 import com.maan.insurance.service.claim.ClaimService;
 import com.maan.insurance.service.impl.QueryImplemention;
 import com.maan.insurance.service.impl.Dropdown.DropDownServiceImple;
@@ -2758,5 +2760,36 @@ public InsertCliamDetailsMode12Res insertCliamDetailsMode12(InsertCliamDetailsMo
 			return response;
 
 }
+
+public claimNoListRes claimNoList(claimNoListReq req) {
+	List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+	claimNoListRes response = new claimNoListRes();
+	
+		try {
+			String query = "GET_CEDENT_NO_LIST";
+			String args[] = new String[4];
+			args[0] = req.getCedentClaimNo();
+			args[1] = req.getDateofLoss();
+			args[2] = req.getCedingCompanyCode();
+			args[3] = req.getBranchCode();
+			if (StringUtils.isNotBlank(req.getClaimNo())) {
+				query += " AND C.CLAIM_NO !=" + req.getClaimNo();
+			}
+			list = queryImpl.selectList(query, args);
+			
+			response.setResponse(list);
+			response.setMessage("Success");
+			response.setIsError(false);
+			}
+			 catch(Exception e){
+				log.error(e);
+				e.printStackTrace();
+				response.setMessage("Failed");
+				response.setIsError(true);
+			}
+				return response;
+
+		}
+
 }
 	

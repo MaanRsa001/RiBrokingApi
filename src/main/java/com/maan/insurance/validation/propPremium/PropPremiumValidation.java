@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.maan.insurance.error.ErrorCheck;
+import com.maan.insurance.model.req.propPremium.CashLossmailTriggerReq;
 import com.maan.insurance.model.req.propPremium.ClaimTableListReq;
 import com.maan.insurance.model.req.propPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetCashLossCreditReq;
@@ -25,6 +26,7 @@ import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
+import com.maan.insurance.model.req.propPremium.InsertReverseCashLossCreditReq;
 import com.maan.insurance.model.req.propPremium.PremiumEditReq;
 import com.maan.insurance.model.req.propPremium.PremiumUpdateMethodReq;
 import com.maan.insurance.model.req.propPremium.SubmitPremiumReservedReq;
@@ -965,6 +967,48 @@ public class PropPremiumValidation {
 		return list;
 	}
 
+	public List<ErrorCheck> InsertCashLossCreditVali(InsertPremiumReq req) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public List<ErrorCheck> InsertReverseCashLossCreditVali(InsertReverseCashLossCreditReq req) {
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if(StringUtils.isBlank(req.getCashlosstranId())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter CashlosstranId"),"CashlosstranId", "01"));
+			}
+	
+		if(StringUtils.isBlank(req.getContNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter ContractNo"),"ContractNo", "02"));
+			}
+		if(StringUtils.isBlank(req.getProposalNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "03"));
+			}
+	
+		if(StringUtils.isBlank(req.getCashlossType())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter CashlossType"),"CashlossType", "04"));
+			}
+		return list;
+	}
+
+	public List<ErrorCheck> CashLossmailTriggerVali(CashLossmailTriggerReq req) {
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if(StringUtils.isBlank(req.getContNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter ContNo"),"ContNo", "01"));
+			}
+	
+		if(StringUtils.isBlank(req.getDepartmentId())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter DepartmentId"),"DepartmentId", "02"));
+			}
+		if(StringUtils.isBlank(req.getProposalNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter ProposalNo"),"ProposalNo", "03"));
+			}
+	
+		if(StringUtils.isBlank(req.getTransactionNo())) {
+			list.add(new ErrorCheck(prop.getProperty("Please Enter TransactionNo"),"TransactionNo", "04"));
+			}
+		return list;
+	}
 	
 
 }

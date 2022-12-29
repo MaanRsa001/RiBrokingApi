@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.maan.insurance.error.CommonValidationException;
 import com.maan.insurance.error.ErrorCheck;
+import com.maan.insurance.model.req.propPremium.CashLossmailTriggerReq;
 import com.maan.insurance.model.req.propPremium.ClaimTableListReq;
 import com.maan.insurance.model.req.propPremium.ContractDetailsReq;
 import com.maan.insurance.model.req.propPremium.GetConstantPeriodDropDownReq;
@@ -26,6 +27,7 @@ import com.maan.insurance.model.req.propPremium.GetRIPremiumListReq;
 import com.maan.insurance.model.req.propPremium.GetSPRetroListReq;
 import com.maan.insurance.model.req.propPremium.GetVatInfoReq;
 import com.maan.insurance.model.req.propPremium.InsertPremiumReq;
+import com.maan.insurance.model.req.propPremium.InsertReverseCashLossCreditReq;
 import com.maan.insurance.model.req.propPremium.PremiumEditReq;
 import com.maan.insurance.model.req.propPremium.SubmitPremiumReservedReq;
 import com.maan.insurance.model.req.propPremium.ViewPremiumDetailsRIRes;
@@ -61,6 +63,8 @@ import com.maan.insurance.model.res.propPremium.premiumUpdateMethodRes;
 
 import com.maan.insurance.model.res.propPremium.ViewPremiumDetailsRIReq;
 import com.maan.insurance.model.res.propPremium.ViewRIPremiumListRes;
+import com.maan.insurance.model.res.propPremium.getCurrencyShortNameRes;
+import com.maan.insurance.model.res.propPremium.getReverseCassLossCreditRes;
 import com.maan.insurance.model.res.retro.CommonResponse;
 import com.maan.insurance.service.propPremium.PropPremiumService;
 import com.maan.insurance.validation.propPremium.PropPremiumValidation;
@@ -291,5 +295,44 @@ public class PropPremiumController {
 			throw new CommonValidationException("error",error);
 		}
 		return premiumService.updateRIStatus(req);	
+	}
+	
+	@PostMapping("/Proppremium/insertCashLossCredit")
+	public CommonResponse InsertCashLossCredit(@RequestBody InsertPremiumReq req) throws CommonValidationException {
+		List<ErrorCheck> error = premiumVali.InsertCashLossCreditVali(req);
+		if(error!= null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return premiumService.InsertCashLossCredit(req);	
+	}
+	
+	@PostMapping("/Proppremium/insertReverseCashLossCredit")
+	public CommonResponse InsertReverseCashLossCredit(@RequestBody InsertReverseCashLossCreditReq req) throws CommonValidationException {
+		List<ErrorCheck> error = premiumVali.InsertReverseCashLossCreditVali(req);
+		if(error!= null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return premiumService.InsertReverseCashLossCredit(req);	
+	}
+	
+	@PostMapping("/Proppremium/cashLossmailTrigger")
+	public CommonResponse CashLossmailTrigger(@RequestBody CashLossmailTriggerReq req) throws CommonValidationException {
+		List<ErrorCheck> error = premiumVali.CashLossmailTriggerVali(req);
+		if(error!= null && error.size()>0) {
+			throw new CommonValidationException("error",error);
+		}
+		return premiumService.CashLossmailTrigger(req);	
+	}
+	
+	@GetMapping("/Proppremium/getReverseCassLossCredit/{proposalNo}/{cashlosstranId}")
+	public getReverseCassLossCreditRes getReverseCassLossCredit(@PathVariable ("proposalNo") String proposalNo,@PathVariable ("cashlosstranId") String cashlosstranId) throws CommonValidationException {
+			return premiumService.getReverseCassLossCredit(proposalNo,cashlosstranId);
+		
+	}
+	
+	@GetMapping("/Proppremium/getCurrencyShortName/{currencyId}/{branchCode}")
+	public getCurrencyShortNameRes getCurrencyShortName(@PathVariable ("currencyId") String currencyId,@PathVariable ("branchCode") String branchCode) throws CommonValidationException {
+			return premiumService.getCurrencyShortName(currencyId,branchCode);
+		
 	}
 }
