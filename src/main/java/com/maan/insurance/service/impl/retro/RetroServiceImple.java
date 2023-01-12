@@ -133,9 +133,6 @@ public class RetroServiceImple implements RetroService {
 	private Formatters fm;
 	
 	@Autowired
-	private ValidationImple vi;
-	
-	@Autowired
 	private TtrnRiskDetailsRepository rdRepo;
 	
 	@Autowired

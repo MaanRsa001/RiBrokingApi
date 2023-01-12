@@ -2683,7 +2683,6 @@ public class PropPremiumServiceImple implements PropPremiumService {
 	}
 	@Transactional
 	public void updateAruguments(InsertPremiumReq beanObj) throws ParseException {
-		
 		SimpleDateFormat sdf = new  SimpleDateFormat("dd/MM/yyyy");
 		if("Temp".equalsIgnoreCase(beanObj.getTableType())){
 			//PREMIUM_UPDATE_TREATYUPDATEPRE_TEMP
