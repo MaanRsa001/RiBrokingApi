@@ -48,7 +48,7 @@ import javax.persistence.*;
 @Table(name="COUNTRY_MASTER")
 
 
-public class CountryMaster implements Serializable {
+public class CountryMaster implements Serializable { 
  
 private static final long serialVersionUID = 1L;
  

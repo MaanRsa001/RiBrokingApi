@@ -20,6 +20,7 @@ import com.maan.insurance.model.req.placement.DeleteFileReq;
 import com.maan.insurance.model.req.placement.EditPlacingDetailsReq;
 import com.maan.insurance.model.req.placement.GetExistingAttachListReq;
 import com.maan.insurance.model.req.placement.GetExistingReinsurerListReq;
+import com.maan.insurance.model.req.placement.GetMailTemplateReq;
 import com.maan.insurance.model.req.placement.GetMailToListReq;
 import com.maan.insurance.model.req.placement.GetPlacementInfoListReq;
 import com.maan.insurance.model.req.placement.GetPlacementViewListReq;
@@ -619,6 +620,14 @@ public List<ErrorCheck> validationStatus(UpdatePlacementReq bean) {
 		}
 		if (StringUtils.isBlank(req.getProposalNo())) {
 			list.add(new ErrorCheck("Please Enter ProposalNo", "ProposalNo", "2"));
+		}
+		return list;
+	}
+
+	public List<ErrorCheck> getMailTemplateVali(GetMailTemplateReq req) {
+		List<ErrorCheck> list = new ArrayList<ErrorCheck>();
+		if (StringUtils.isBlank(req.getMailType())) {
+			list.add(new ErrorCheck("Please Enter MailType", "MailType", "1"));
 		}
 		return list;
 	}

@@ -50,6 +50,7 @@ import org.springframework.util.CollectionUtils;
 import com.maan.insurance.model.entity.ConstantDetail;
 import com.maan.insurance.model.entity.MailMaster;
 import com.maan.insurance.model.entity.MailNotificationDetail;
+import com.maan.insurance.model.entity.MailTemplateMaster;
 import com.maan.insurance.model.entity.NotificationAttachmentDetail;
 import com.maan.insurance.model.entity.PersonalInfo;
 import com.maan.insurance.model.entity.PersonalInfoContact;
@@ -61,6 +62,7 @@ import com.maan.insurance.model.entity.TtrnRiPlacementStatus;
 import com.maan.insurance.model.entity.TtrnRiskDetails;
 import com.maan.insurance.model.repository.MailMasterRepository;
 import com.maan.insurance.model.repository.MailNotificationDetailRepository;
+import com.maan.insurance.model.repository.MailTemplateMasterRepository;
 import com.maan.insurance.model.repository.NotificationAttachmentDetailRepository;
 import com.maan.insurance.model.repository.TtrnRiPlacementRepository;
 import com.maan.insurance.model.repository.TtrnRiPlacementStatusRepository;
@@ -69,6 +71,7 @@ import com.maan.insurance.model.req.placement.DeleteFileReq;
 import com.maan.insurance.model.req.placement.EditPlacingDetailsReq;
 import com.maan.insurance.model.req.placement.GetExistingAttachListReq;
 import com.maan.insurance.model.req.placement.GetExistingReinsurerListReq;
+import com.maan.insurance.model.req.placement.GetMailTemplateReq;
 import com.maan.insurance.model.req.placement.GetMailToListReq;
 import com.maan.insurance.model.req.placement.GetPlacementInfoListReq;
 import com.maan.insurance.model.req.placement.GetPlacementViewListReq;
@@ -98,6 +101,8 @@ import com.maan.insurance.model.res.placement.EditPlacingDetailsRes1;
 import com.maan.insurance.model.res.placement.EditPlacingDetailsResponse;
 import com.maan.insurance.model.res.placement.GetExistingAttachListRes;
 import com.maan.insurance.model.res.placement.GetExistingAttachListRes1;
+import com.maan.insurance.model.res.placement.GetMailTemplateRes;
+import com.maan.insurance.model.res.placement.GetMailTemplateRes1;
 import com.maan.insurance.model.res.placement.GetPlacementInfoListRes;
 import com.maan.insurance.model.res.placement.GetPlacementInfoListRes1;
 import com.maan.insurance.model.res.placement.GetPlacementNoRes;
@@ -154,7 +159,8 @@ public class PlacementServiceImple implements PlacementService {
 	private MailMasterRepository mmRepo;
 	@Autowired
 	private MailNotificationDetailRepository  mailnotiRepo;
-	
+	@Autowired
+	private MailTemplateMasterRepository mailTemplateMasterRepository;
 	
 	@PersistenceContext
 	private EntityManager em;
@@ -2264,6 +2270,39 @@ public class PlacementServiceImple implements PlacementService {
 	 					response.setIsError(true);
 	 				}
 	 			return response;
+	}
+
+	@Override
+	public GetMailTemplateRes getMailTemplate(GetMailTemplateReq req) {
+		GetMailTemplateRes response = new GetMailTemplateRes();
+		GetMailTemplateRes1 bean =new GetMailTemplateRes1();
+		try {
+			//GET_MAIL_TEMPLATE
+			List<MailTemplateMaster> list = mailTemplateMasterRepository.findByMailType(req.getMailType());
+		
+			if(!CollectionUtils.isEmpty(list)) {
+				MailTemplateMaster map=list.get(0);
+				bean.setMailSubject(map.getMailSubject()==null?"":map.getMailSubject().toString());
+
+				bean.setMailBody(map.getMailBody()==null?"":map.getMailBody().toString());
+				if(StringUtils.isBlank(req.getMailTo()))
+				bean.setMailTo(map.getEmailTo()==null?"":map.getEmailTo().toString());
+				if(StringUtils.isBlank(req.getMailCC()))
+				bean.setMailCC(map.getEmailCc()==null?"":map.getEmailCc().toString());
+				bean.setMailRegards(map.getMailRegards()==null?"":map.getMailRegards().toString());
+				
+			}
+		//	GetMailBodyFrame(bean);
+			response.setCommonResponse(bean);
+			 response.setMessage("Success");
+			 response.setIsError(false);
+			}catch(Exception e){
+					log.error(e);
+					e.printStackTrace();
+					response.setMessage("Failed");
+					response.setIsError(true);
+				}
+			return response;
 	}
 
 	}
